@@ -11,6 +11,8 @@ import android.graphics.Typeface;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -57,12 +59,37 @@ public class MainActivity extends AppCompatActivity {
     TextView currentDateTV;
     TextView currentBigTemp;
     TextView currentCity;
+    TextView networkStatus;
 
+    /* Network state */
+    boolean isWiFi;
+    boolean isConnected;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        /* Bind necessary UI Elements with our code */
+        bindUI();
+
+        /* Check the network status */
+        ConnectivityManager cm =
+                (ConnectivityManager)this.getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+        isConnected = activeNetwork != null &&
+                activeNetwork.isConnectedOrConnecting();
+
+        Log.i(TAG, String.valueOf(isConnected));
+
+        isWiFi = activeNetwork.getType() == ConnectivityManager.TYPE_WIFI;
+        Log.i(TAG, String.valueOf(isWiFi));
+
+        if(! (isConnected || isWiFi))
+            networkStatus.setVisibility(View.VISIBLE);
+        else
+            networkStatus.setVisibility(View.GONE);
 
 
         /* Workaround to change the font of ActionBar */
@@ -89,9 +116,6 @@ public class MainActivity extends AppCompatActivity {
             Log.e(TAG,e.toString());
             this.getSupportActionBar().setTitle("Pixel Weather");
         }
-
-        /* Bind necessary UI Elements with our code */
-        bindUI();
 
         /* Request for location access if we don't have access already */
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
@@ -205,5 +229,6 @@ public class MainActivity extends AppCompatActivity {
         currentDateTV = findViewById(R.id.todays_date);
         currentBigTemp = findViewById(R.id.current_big_temp);
         currentCity = findViewById(R.id.city_name);
+        networkStatus = findViewById(R.id.network_status);
     }
 }

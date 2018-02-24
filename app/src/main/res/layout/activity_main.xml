@@ -25,6 +25,17 @@
                 android:translationZ="10dp">
 
                 <TextView
+                    android:id="@+id/network_status"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/no_network"
+                    android:textColor="@android:color/white"
+                    android:gravity="center"
+                    android:padding="6dp"
+                    android:layout_marginBottom="6dp"
+                    android:background="@color/primary_dark"/>
+
+                <TextView
                     android:id="@+id/todays_date"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
