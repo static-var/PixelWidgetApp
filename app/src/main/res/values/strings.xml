@@ -1,5 +1,5 @@
 <resources>
     <string name="app_name">PixelWidget</string>
-    <string name="appwidget_text">EXAMPLE</string>
+    <string name="appwidget_text">Events</string>
     <string name="add_widget">Add widget</string>
 </resources>

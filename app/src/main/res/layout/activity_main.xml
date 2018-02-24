@@ -6,13 +6,72 @@
     android:layout_height="match_parent"
     tools:context="com.dev.shreyansh.pixelwidget.MainActivity">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Hello World!"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:padding="16dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@color/primary"
+                android:elevation="10dp"
+                android:translationZ="10dp">
+
+                <TextView
+                    android:id="@+id/todays_date"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Today's date"
+                    android:gravity="center"
+                    android:textSize="30dp"/>
+
+                <LinearLayout
+                    android:layout_margin="16dp"
+                    android:paddingTop="36dp"
+                    android:paddingBottom="36dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:weightSum="2">
+
+                    <TextView
+                        android:id="@+id/current_big_temp"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:gravity="center"
+                        android:text="lol"
+                        android:textSize="52dp"
+                        android:layout_weight="1"/>
+
+                    <ImageView
+                        android:id="@+id/current_weather_image"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:src="@drawable/danieledesantis_weather_icons_night_clear"
+                        android:contentDescription="Weather Image"/>
+
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/city_name"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:textSize="30dp"/>
+
+
+            </LinearLayout>
+
+
+        </LinearLayout>
+    </ScrollView>
 
 </android.support.constraint.ConstraintLayout>
