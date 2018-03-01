@@ -42,6 +42,7 @@ public class MainActivity extends AppCompatActivity {
     private static final int UPDATE_DURATION = 10000;
     private static final int DISPLACEMENT = 10;
     private static final int FASTEST_UPDATE = 1000;
+    private static final char degree = (char) 0x00B0;
 
     private LocationManager locationManager;
     public Location location;
@@ -207,6 +208,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /* Check if required version of play services is available in device or not */
+    @SuppressWarnings("deprecation")
     private boolean checkPlayServices() {
         int resultCode = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this);
         if(resultCode != ConnectionResult.SUCCESS){
@@ -233,8 +235,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /* ConnectionCallback function */
+    @SuppressWarnings("deprecation")
     private GoogleApiClient.ConnectionCallbacks ret(){
-        GoogleApiClient.ConnectionCallbacks cb = new GoogleApiClient.ConnectionCallbacks() {
+        return new GoogleApiClient.ConnectionCallbacks() {
             @Override
             public synchronized void onConnected(@Nullable Bundle bundle) {
                 if(ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION)
@@ -251,18 +254,16 @@ public class MainActivity extends AppCompatActivity {
                 googleApiClient.connect();
             }
         };
-        return cb;
     }
 
     /* OnConnectionFailedListener function */
     private GoogleApiClient.OnConnectionFailedListener retFail() {
-        GoogleApiClient.OnConnectionFailedListener connectionFailedListener = new GoogleApiClient.OnConnectionFailedListener() {
+        return new GoogleApiClient.OnConnectionFailedListener() {
             @Override
             public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
                 Log.i(TAG,"Not able to get Location through Fuse API");
             }
         };
-        return connectionFailedListener;
     }
 
     @Override
@@ -289,7 +290,7 @@ public class MainActivity extends AppCompatActivity {
                 pd.dismiss();
 
                 /* Set Data in UI */
-                currentBigTemp.setText(String.valueOf(weather.getCurrentTemprature()) + (char) 0x00B0);
+                currentBigTemp.setText(String.valueOf(weather.getCurrentTemprature()) + degree);
                 currentCity.setText(Html.fromHtml(weather.getCityName() + ", <b>" + weather.getCountryCode() + "</b>"));
             } catch (Exception e) {
                 Log.e(TAG, e.toString());
