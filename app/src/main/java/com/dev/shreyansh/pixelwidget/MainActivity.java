@@ -5,37 +5,33 @@ import android.app.ActionBar;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.pm.PackageManager;
-import android.content.res.AssetManager;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.location.Location;
-import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Html;
-import android.text.Spannable;
-import android.text.SpannableString;
-import android.text.style.TypefaceSpan;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.Toolbar;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationCallback;
-import com.google.android.gms.location.LocationResult;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 
-import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.text.SimpleDateFormat;
@@ -43,11 +39,15 @@ import java.text.SimpleDateFormat;
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "PixelLocationWidget";
+    private static final int UPDATE_DURATION = 10000;
+    private static final int DISPLACEMENT = 10;
+    private static final int FASTEST_UPDATE = 1000;
+
     private LocationManager locationManager;
-    private LocationListener locationListener;
-    private Location location;
+    public Location location;
 
     private final int PERMISSION_ACCESS_FINE_LOCATION = 0;
+    private final int PERMISSION_ACCESS_COARSE_LOCATION = 1;
 
     private String currentDate;
     private SimpleDateFormat sdf;
@@ -64,6 +64,12 @@ public class MainActivity extends AppCompatActivity {
     /* Network state */
     boolean isWiFi;
     boolean isConnected;
+
+    /* Google API Client */
+    private GoogleApiClient googleApiClient;
+    private final static int PLAY_SERVICES_RESOLUTION_REQUEST = 1000;
+    private LocationRequest locationRequest;
+    private LocationListener locationListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -101,7 +107,7 @@ public class MainActivity extends AppCompatActivity {
             tv.setTextSize(20);
             tv.setTextColor(Color.parseColor("#FFFFFF"));
 
-            /* */
+            /* Set Custom Font */
             Typeface tf = Typeface.createFromAsset(getAssets(), "fonts/Product Sans Regular.ttf");
             tv.setTypeface(tf);
             this.getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
@@ -122,43 +128,156 @@ public class MainActivity extends AppCompatActivity {
                 != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[] { Manifest.permission.ACCESS_FINE_LOCATION },
                     PERMISSION_ACCESS_FINE_LOCATION);
+            ActivityCompat.requestPermissions(this, new String[] { Manifest.permission.ACCESS_COARSE_LOCATION },
+                    PERMISSION_ACCESS_COARSE_LOCATION);
         } else {
-            /* if we have access to location then add a listener and get location */
-            if (locationManager == null || locationListener == null) {
+
+            if (checkPlayServices()){
                 initialiseManagerListener();
+                buildGoogleApiClient();
+                googleApiClient.connect();
             }
-            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListener);
+
+            /* Find Current day of the week
+             * Add HTML style to it */
+            sdf = new SimpleDateFormat("EEEE");
+            currentDate = "<b>" + sdf.format(System.currentTimeMillis()) + "</b>";
+            sdf = new SimpleDateFormat("dd");
+            currentDate = currentDate + ", " + sdf.format(System.currentTimeMillis());
+            currentDateTV.setText(Html.fromHtml(currentDate));
         }
+    }
 
-        /* Find Current day of the week
-         * Add HTML style to it */
-        sdf = new SimpleDateFormat("EEEE");
-        currentDate = "<b>"+sdf.format(System.currentTimeMillis())+"</b>";
-        sdf = new SimpleDateFormat("dd");
-        currentDate = currentDate+", "+sdf.format(System.currentTimeMillis());
-        currentDateTV.setText(Html.fromHtml(currentDate));
-
-
-
-        /* Get Location to begin task */
-
-
-        /* Request for GPS location if GPS is enabled
-         * tempLocation can still be null
-         * If the provider is not available
-         * or if device is far from the last known location */
-        if(locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) && location == null){
-            locationManager.requestSingleUpdate(LocationManager.GPS_PROVIDER, locationListener, null);
-            location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-        } else if(location == null) {
-            locationManager.requestSingleUpdate(LocationManager.NETWORK_PROVIDER, locationListener, null);
-            location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+    /* Handle User's response after permission pop-up */
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        switch (requestCode) {
+            case PERMISSION_ACCESS_FINE_LOCATION:
+            case PERMISSION_ACCESS_COARSE_LOCATION:
+                for(int a : grantResults){
+                    Log.i(TAG,String.valueOf(a));
+                }
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    /* Set listeners if location is granted */
+                    if (checkPlayServices()){
+                        initialiseManagerListener();
+                        buildGoogleApiClient();
+                        googleApiClient.connect();
+                    }
+                } else {
+                    Toast.makeText(this, "Need your location!", Toast.LENGTH_SHORT).show();
+                }
+                break;
         }
+    }
 
+    /* Initialize listener, request and manager */
+    public void initialiseManagerListener() {
+        locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+        locationRequest = LocationRequest.create()
+                .setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY)
+                .setInterval(UPDATE_DURATION)
+                .setSmallestDisplacement(DISPLACEMENT)
+                .setFastestInterval(FASTEST_UPDATE);
+        locationListener = new LocationListener() {
+            @Override
+            public void onLocationChanged(Location location) {
+                try {
+                    Log.i(TAG,String.valueOf(location.getLatitude() +" "+ location.getLongitude()));
+                    setLocation(location);
+                } catch (Exception e) {
+                    //
+                }
+            }
+        };
+    }
 
-        if(location != null) {
+    /* Update the changed location and UI with it */
+    public void setLocation(Location newLocation) {
+        location = newLocation;
+        writeDataToUI();
+    }
+
+    /* Bind necessary elements of UI to this code */
+    public void bindUI() {
+        currentDateTV = findViewById(R.id.todays_date);
+        currentBigTemp = findViewById(R.id.current_big_temp);
+        currentCity = findViewById(R.id.city_name);
+        networkStatus = findViewById(R.id.network_status);
+    }
+
+    /* Check if required version of play services is available in device or not */
+    private boolean checkPlayServices() {
+        int resultCode = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this);
+        if(resultCode != ConnectionResult.SUCCESS){
+            if (GooglePlayServicesUtil.isUserRecoverableError(resultCode)) {
+                GooglePlayServicesUtil.getErrorDialog(resultCode, this,
+                        PLAY_SERVICES_RESOLUTION_REQUEST).show();
+            } else {
+                Toast.makeText(getApplicationContext(),
+                        "This device is not supported.", Toast.LENGTH_LONG)
+                        .show();
+                finish();
+            }
+            return false;
+        }
+        return true;
+    }
+
+    /* Build Google's FuseLocation Service */
+    private synchronized void buildGoogleApiClient() {
+        googleApiClient = new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(ret())
+                .addOnConnectionFailedListener(retFail())
+                .addApi(LocationServices.API).build();
+    }
+
+    /* ConnectionCallback function */
+    private GoogleApiClient.ConnectionCallbacks ret(){
+        GoogleApiClient.ConnectionCallbacks cb = new GoogleApiClient.ConnectionCallbacks() {
+            @Override
+            public synchronized void onConnected(@Nullable Bundle bundle) {
+                if(ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION)
+                        == PackageManager.PERMISSION_GRANTED && locationManager != null) {
+                    LocationServices.FusedLocationApi.requestLocationUpdates(googleApiClient, locationRequest, locationListener);
+                    location = LocationServices.FusedLocationApi.getLastLocation(googleApiClient);
+                    Log.i(TAG, String.valueOf(location.getLatitude()) + " " + location.getLongitude());
+                    writeDataToUI();
+                }
+            }
+
+            @Override
+            public void onConnectionSuspended(int i) {
+                googleApiClient.connect();
+            }
+        };
+        return cb;
+    }
+
+    /* OnConnectionFailedListener function */
+    private GoogleApiClient.OnConnectionFailedListener retFail() {
+        GoogleApiClient.OnConnectionFailedListener connectionFailedListener = new GoogleApiClient.OnConnectionFailedListener() {
+            @Override
+            public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+                Log.i(TAG,"Not able to get Location through Fuse API");
+            }
+        };
+        return connectionFailedListener;
+    }
+
+    @Override
+    public void onDestroy(){
+        super.onDestroy();
+        if(googleApiClient.isConnected()) {
+            googleApiClient.disconnect();
+        }
+    }
+
+    /* Write Weather Data to UI */
+    public synchronized void writeDataToUI(){
+        if (location != null) {
             try {
-                /* Get weather data  */
+                    /* Get weather data  */
                 ProgressDialog pd = new ProgressDialog(this);
                 pd.setTitle("Fetching");
                 pd.setMessage("Fetching weather detail.");
@@ -168,67 +287,12 @@ public class MainActivity extends AppCompatActivity {
                 weatherData = new FetchAsync().execute(location.getLatitude(), location.getLongitude()).get();
                 weather = new Weather(weatherData);
                 pd.dismiss();
-                /* Set Data in UI */
-                currentBigTemp.setText(String.valueOf(weather.getCurrentTemprature())+(char) 0x00B0);
-                currentCity.setText(Html.fromHtml(weather.getCityName()+", <b>"+weather.getCountryCode()+"</b>"));
+                    /* Set Data in UI */
+                currentBigTemp.setText(String.valueOf(weather.getCurrentTemprature()) + (char) 0x00B0);
+                currentCity.setText(Html.fromHtml(weather.getCityName() + ", <b>" + weather.getCountryCode() + "</b>"));
             } catch (Exception e) {
                 Log.e(TAG, e.toString());
             }
-        } else {
-            Log.i(TAG,String.valueOf(location));
         }
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-        switch (requestCode) {
-            case PERMISSION_ACCESS_FINE_LOCATION:
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    /* Set listeners if location is granted */
-                    initialiseManagerListener();
-                } else {
-                    Toast.makeText(this, "Need your location!", Toast.LENGTH_SHORT).show();
-                }
-
-                break;
-        }
-    }
-
-    /* Initialize listener and manager */
-    public void initialiseManagerListener() {
-        locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
-        locationListener = new LocationListener() {
-            @Override
-            public void onLocationChanged(Location location) {
-                try {
-                    weatherData = new FetchAsync().execute(location.getLatitude(), location.getLongitude()).get();
-                    weather = new Weather(weatherData);
-                } catch (Exception e) {
-                    //
-                }
-            }
-
-            @Override
-            public void onStatusChanged(String provider, int status, Bundle extras) {
-
-            }
-
-            @Override
-            public void onProviderEnabled(String provider) {
-
-            }
-
-            @Override
-            public void onProviderDisabled(String provider) {
-
-            }
-        };
-    }
-
-    public void bindUI() {
-        currentDateTV = findViewById(R.id.todays_date);
-        currentBigTemp = findViewById(R.id.current_big_temp);
-        currentCity = findViewById(R.id.city_name);
-        networkStatus = findViewById(R.id.network_status);
     }
 }
