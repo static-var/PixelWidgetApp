@@ -268,7 +268,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onDestroy(){
         super.onDestroy();
-        if(googleApiClient.isConnected()) {
+        if(googleApiClient != null &&googleApiClient.isConnected()) {
             googleApiClient.disconnect();
         }
     }
@@ -277,7 +277,7 @@ public class MainActivity extends AppCompatActivity {
     public synchronized void writeDataToUI(){
         if (location != null) {
             try {
-                    /* Get weather data  */
+                /* Get weather data  */
                 ProgressDialog pd = new ProgressDialog(this);
                 pd.setTitle("Fetching");
                 pd.setMessage("Fetching weather detail.");
@@ -287,7 +287,8 @@ public class MainActivity extends AppCompatActivity {
                 weatherData = new FetchAsync().execute(location.getLatitude(), location.getLongitude()).get();
                 weather = new Weather(weatherData);
                 pd.dismiss();
-                    /* Set Data in UI */
+
+                /* Set Data in UI */
                 currentBigTemp.setText(String.valueOf(weather.getCurrentTemprature()) + (char) 0x00B0);
                 currentCity.setText(Html.fromHtml(weather.getCityName() + ", <b>" + weather.getCountryCode() + "</b>"));
             } catch (Exception e) {
