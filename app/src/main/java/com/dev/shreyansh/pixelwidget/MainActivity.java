@@ -11,6 +11,7 @@ import android.location.Location;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
@@ -74,6 +75,8 @@ public class MainActivity extends AppCompatActivity {
     TextView sunset;
     ImageView weatherImage;
     LinearLayout hero;
+
+    ProgressDialog pd;
 
     /* Network state */
     boolean isWiFi;
@@ -315,30 +318,40 @@ public class MainActivity extends AppCompatActivity {
         if (location != null) {
             try {
                 /* Get weather data  */
-                ProgressDialog pd = new ProgressDialog(this);
+                pd = new ProgressDialog(this);
+                pd.setProgressStyle(ProgressDialog.STYLE_SPINNER);
                 pd.setTitle("Fetching");
                 pd.setMessage("Fetching weather detail.");
                 pd.setIndeterminate(true);
                 pd.setCancelable(false);
                 pd.show();
-                weatherData = new FetchAsync().execute(location.getLatitude(), location.getLongitude()).get();
-                weather = new Weather(weatherData);
-
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            weatherData = new FetchAsync().execute(location.getLatitude(), location.getLongitude()).get();
+                            weather = new Weather(weatherData);
+                        } catch (Exception e) {
+                            Log.e(TAG,e.toString());
+                        }
                 /* Set Data in UI */
-                currentBigTemp.setText(String.valueOf(weather.getCurrentTemperature()) + degree);
-                currentCity.setText(Html.fromHtml(weather.getCityName() + ", <b>" + weather.getCountryCode() + "</b>"));
-                maxTemp.setText(String.valueOf(weather.getMaxTemperature()) + degree);
-                minTemp.setText(String.valueOf(weather.getMinTemperature()) + degree);
-                weatherDesc.setText(Html.fromHtml(" <b>"+weather.getMain()+"</b> - "+ StringUtils.capitalize(weather.getDescription())));
-                humidity.setText(String.valueOf(weather.getHumidity()) + degree);
-                wind.setText(String.valueOf(weather.getWindSpeed()) + " km/h");
-                sunrise.setText(weather.getSunrise());
-                sunset.setText(weather.getSunset());
-                weatherImage.setImageResource(returnImageRes(weather.getDescription(), weather.getIsDayTime()));
-                pd.dismiss();
-                hero.setVisibility(View.VISIBLE);
-                Animation fadeIn = AnimationUtils.loadAnimation(this, R.anim.fade_in);
-                hero.startAnimation(fadeIn);
+                        currentBigTemp.setText(String.valueOf(weather.getCurrentTemperature()) + degree);
+                        currentCity.setText(Html.fromHtml(weather.getCityName() + ", <b>" + weather.getCountryCode() + "</b>"));
+                        maxTemp.setText(String.valueOf(weather.getMaxTemperature()) + degree);
+                        minTemp.setText(String.valueOf(weather.getMinTemperature()) + degree);
+                        weatherDesc.setText(Html.fromHtml(" <b>"+weather.getMain()+"</b> - "+ StringUtils.capitalize(weather.getDescription())));
+                        humidity.setText(String.valueOf(weather.getHumidity()) + degree);
+                        wind.setText(String.valueOf(weather.getWindSpeed()) + " km/h");
+                        sunrise.setText(weather.getSunrise());
+                        sunset.setText(weather.getSunset());
+                        weatherImage.setImageResource(returnImageRes(weather.getDescription(), weather.getIsDayTime()));
+                        pd.dismiss();
+                        hero.setVisibility(View.VISIBLE);
+                        Animation fadeIn = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fade_in);
+                        hero.startAnimation(fadeIn);
+                    }
+                }, 1);
+
             } catch (Exception e) {
                 Log.e(TAG, e.toString());
             }
