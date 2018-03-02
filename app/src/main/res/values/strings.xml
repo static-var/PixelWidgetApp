@@ -1,9 +1,27 @@
 <resources>
-    <string name="app_name">PixelWidget</string>
+    <string name="app_name">Pixel Weather</string>
     <string name="appwidget_text">Events</string>
     <string name="add_widget">Add widget</string>
 
-    <!--Network not available String-->
+    <!-- Network not available String -->
     <string name="no_network">You are not connected to the Internet.</string>
+
+    <!-- Max Weather Text -->
+    <string name="high_temp">Max Temperature</string>
+
+    <!-- Min Weather Text -->
+    <string name="low_temp">Min Temperature</string>
+
+    <!-- Humidity Text -->
+    <string name="humidity">Humidity</string>
+
+    <!-- Wind Text -->
+    <string name="wind">Wind Speed</string>
+
+    <!-- Sunrise Text -->
+    <string name="sunrise">Sunrise</string>
+
+    <!-- Sunset Text -->
+    <string name="sunset">Sunset</string>
 
 </resources>

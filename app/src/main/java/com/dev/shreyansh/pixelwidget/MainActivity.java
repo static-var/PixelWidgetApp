@@ -27,11 +27,11 @@ import android.widget.Toast;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 
+import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
 
 import java.text.SimpleDateFormat;
@@ -61,6 +61,13 @@ public class MainActivity extends AppCompatActivity {
     TextView currentBigTemp;
     TextView currentCity;
     TextView networkStatus;
+    TextView maxTemp;
+    TextView minTemp;
+    TextView weatherDesc;
+    TextView humidity;
+    TextView wind;
+    TextView sunrise;
+    TextView sunset;
 
     /* Network state */
     boolean isWiFi;
@@ -81,31 +88,35 @@ public class MainActivity extends AppCompatActivity {
         bindUI();
 
         /* Check the network status */
-        ConnectivityManager cm =
-                (ConnectivityManager)this.getSystemService(Context.CONNECTIVITY_SERVICE);
+        try {
+            ConnectivityManager cm =
+                    (ConnectivityManager) this.getSystemService(Context.CONNECTIVITY_SERVICE);
+            NetworkInfo activeNetwork = null;
+            activeNetwork = cm.getActiveNetworkInfo();
+            isConnected = activeNetwork != null &&
+                    activeNetwork.isConnectedOrConnecting();
 
-        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
-        isConnected = activeNetwork != null &&
-                activeNetwork.isConnectedOrConnecting();
+            Log.i(TAG, String.valueOf(isConnected));
 
-        Log.i(TAG, String.valueOf(isConnected));
+            isWiFi = activeNetwork.getType() == ConnectivityManager.TYPE_WIFI;
+            Log.i(TAG, String.valueOf(isWiFi));
 
-        isWiFi = activeNetwork.getType() == ConnectivityManager.TYPE_WIFI;
-        Log.i(TAG, String.valueOf(isWiFi));
-
-        if(! (isConnected || isWiFi))
-            networkStatus.setVisibility(View.VISIBLE);
-        else
-            networkStatus.setVisibility(View.GONE);
-
+            if (!(isConnected || isWiFi))
+                networkStatus.setVisibility(View.VISIBLE);
+            else
+                networkStatus.setVisibility(View.GONE);
+        }
+        catch (Exception e) {
+            Log.e(TAG, e.toString());
+        }
 
         /* Workaround to change the font of ActionBar */
         try {
             TextView tv = new TextView(getApplicationContext());
             RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(ActionBar.LayoutParams.WRAP_CONTENT, ActionBar.LayoutParams.WRAP_CONTENT);
             tv.setLayoutParams(lp);
-            tv.setText("Pixel Weather");
-            tv.setTextSize(20);
+            tv.setText(getString(R.string.app_name));
+            tv.setTextSize(24);
             tv.setTextColor(Color.parseColor("#FFFFFF"));
 
             /* Set Custom Font */
@@ -205,6 +216,13 @@ public class MainActivity extends AppCompatActivity {
         currentBigTemp = findViewById(R.id.current_big_temp);
         currentCity = findViewById(R.id.city_name);
         networkStatus = findViewById(R.id.network_status);
+        maxTemp = findViewById(R.id.max_temp);
+        minTemp = findViewById(R.id.min_temp);
+        weatherDesc = findViewById(R.id.weather_desc);
+        humidity = findViewById(R.id.humidity);
+        wind = findViewById(R.id.wind);
+        sunrise = findViewById(R.id.sunrise);
+        sunset = findViewById(R.id.sunset);
     }
 
     /* Check if required version of play services is available in device or not */
@@ -287,11 +305,18 @@ public class MainActivity extends AppCompatActivity {
                 pd.show();
                 weatherData = new FetchAsync().execute(location.getLatitude(), location.getLongitude()).get();
                 weather = new Weather(weatherData);
-                pd.dismiss();
 
                 /* Set Data in UI */
-                currentBigTemp.setText(String.valueOf(weather.getCurrentTemprature()) + degree);
+                currentBigTemp.setText(String.valueOf(weather.getCurrentTemperature()) + degree);
                 currentCity.setText(Html.fromHtml(weather.getCityName() + ", <b>" + weather.getCountryCode() + "</b>"));
+                maxTemp.setText(String.valueOf(weather.getMaxTemperature()) + degree);
+                minTemp.setText(String.valueOf(weather.getMinTemperature()) + degree);
+                weatherDesc.setText(Html.fromHtml(" <b>"+weather.getMain()+"</b> - "+ StringUtils.capitalize(weather.getDescription())));
+                humidity.setText(String.valueOf(weather.getHumidity()) + degree);
+                wind.setText(String.valueOf(weather.getWindSpeed()) + " km/h");
+                sunrise.setText(weather.getSunrise());
+                sunset.setText(weather.getSunset());
+                pd.dismiss();
             } catch (Exception e) {
                 Log.e(TAG, e.toString());
             }

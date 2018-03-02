@@ -15,9 +15,9 @@ import java.util.Date;
 
 public class Weather {
     public static final String TAG = "WeatherJSONParserClass";
-    private double currentTemprature;
-    private double maxTemprature;
-    private double minTemprature;
+    private double currentTemperature;
+    private double maxTemperature;
+    private double minTemperature;
     private double windSpeed;
     private double humidity;
     private String cityName;
@@ -66,9 +66,9 @@ public class Weather {
 
                 /* Get temperature data */
                 subDetail = data.getJSONObject("main");
-                currentTemprature = subDetail.getDouble("temp");
-                minTemprature = subDetail.getDouble("temp_min");
-                maxTemprature = subDetail.getDouble("temp_max");
+                currentTemperature = subDetail.getDouble("temp");
+                minTemperature = subDetail.getDouble("temp_min");
+                maxTemperature = subDetail.getDouble("temp_max");
                 humidity = subDetail.getDouble("humidity");
 
                 /* Get Wind speed */
@@ -85,16 +85,16 @@ public class Weather {
         }
     }
 
-    public double getCurrentTemprature() {
-        return currentTemprature;
+    public double getCurrentTemperature() {
+        return currentTemperature;
     }
 
-    public double getMaxTemprature() {
-        return maxTemprature;
+    public double getMaxTemperature() {
+        return maxTemperature;
     }
 
-    public double getMinTemprature() {
-        return minTemprature;
+    public double getMinTemperature() {
+        return minTemperature;
     }
 
     public double getWindSpeed() {
