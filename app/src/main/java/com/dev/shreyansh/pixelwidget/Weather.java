@@ -58,8 +58,8 @@ public class Weather {
                 /* Fetch Sunrise, Sunset and CountryCode */
                 subDetail = data.getJSONObject("sys");
                 countryCode = subDetail.getString("country");
-                sunrise = simpleDateFormat.format(new Date(subDetail.getLong("sunrise")));
-                sunset = simpleDateFormat.format(new Date(subDetail.getLong("sunset")));
+                sunrise = simpleDateFormat.format(new Date(subDetail.getLong("sunrise")*1000));
+                sunset = simpleDateFormat.format(new Date(subDetail.getLong("sunset")*1000));
 
                 /* Determine if it's DayTime or NightTime */
                 isDayTime = (System.currentTimeMillis()/1000) < subDetail.getLong("sunset");
