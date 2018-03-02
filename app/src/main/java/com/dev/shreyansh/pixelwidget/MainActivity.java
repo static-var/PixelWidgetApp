@@ -334,7 +334,7 @@ public class MainActivity extends AppCompatActivity {
                         } catch (Exception e) {
                             Log.e(TAG,e.toString());
                         }
-                /* Set Data in UI */
+                        /* Set Data in UI */
                         currentBigTemp.setText(String.valueOf(weather.getCurrentTemperature()) + degree);
                         currentCity.setText(Html.fromHtml(weather.getCityName() + ", <b>" + weather.getCountryCode() + "</b>"));
                         maxTemp.setText(String.valueOf(weather.getMaxTemperature()) + degree);
@@ -350,7 +350,7 @@ public class MainActivity extends AppCompatActivity {
                         Animation fadeIn = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fade_in);
                         hero.startAnimation(fadeIn);
                     }
-                }, 1);
+                }, 0);
 
             } catch (Exception e) {
                 Log.e(TAG, e.toString());
