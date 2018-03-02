@@ -20,6 +20,7 @@ import android.os.Bundle;
 import android.text.Html;
 import android.util.Log;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -68,6 +69,7 @@ public class MainActivity extends AppCompatActivity {
     TextView wind;
     TextView sunrise;
     TextView sunset;
+    ImageView weatherImage;
 
     /* Network state */
     boolean isWiFi;
@@ -223,6 +225,7 @@ public class MainActivity extends AppCompatActivity {
         wind = findViewById(R.id.wind);
         sunrise = findViewById(R.id.sunrise);
         sunset = findViewById(R.id.sunset);
+        weatherImage = findViewById(R.id.current_weather_image);
     }
 
     /* Check if required version of play services is available in device or not */
@@ -316,9 +319,39 @@ public class MainActivity extends AppCompatActivity {
                 wind.setText(String.valueOf(weather.getWindSpeed()) + " km/h");
                 sunrise.setText(weather.getSunrise());
                 sunset.setText(weather.getSunset());
+                weatherImage.setImageResource(returnImageRes(weather.getDescription(), weather.getIsDayTime()));
                 pd.dismiss();
             } catch (Exception e) {
                 Log.e(TAG, e.toString());
+            }
+        }
+    }
+
+    public int returnImageRes(String weather, boolean isStillDay) {
+
+        if(isStillDay) {
+            switch (weather.toLowerCase().trim()) {
+                case "clear sky": return R.drawable.danieledesantis_weather_icons_sunny;
+                case "few clouds":return R.drawable.danieledesantis_weather_icons_cloudy;
+                case "scattered clouds": return R.drawable.danieledesantis_weather_icons_cloudy_two;
+                case "broken clouds" : return R.drawable.danieledesantis_weather_icons_cloudy_three;
+                case "shower rain": return R.drawable.danieledesantis_weather_icons_rainy_two;
+                case "rain": return R.drawable.danieledesantis_weather_icons_rainy;
+                case "thunderstorm": return R.drawable.danieledesantis_weather_icons_stormy;
+                case "snow": return R.drawable.danieledesantis_weather_icons_snowy;
+                default: return R.drawable.danieledesantis_weather_icons_cloudy;
+            }
+        } else {
+            switch (weather.toLowerCase().trim()) {
+                case "clear sky": return R.drawable.danieledesantis_weather_icons_night_clear;
+                case "few clouds":return R.drawable.danieledesantis_weather_icons_night_cloudy;
+                case "scattered clouds": return R.drawable.danieledesantis_weather_icons_night_cloudy_two;
+                case "broken clouds" : return R.drawable.danieledesantis_weather_icons_night_cloudy_three;
+                case "shower rain": return R.drawable.danieledesantis_weather_icons_night_rainy_two;
+                case "rain": return R.drawable.danieledesantis_weather_icons_night_rainy;
+                case "thunderstorm": return R.drawable.danieledesantis_weather_icons_night_stormy;
+                case "snow": return R.drawable.danieledesantis_weather_icons_night_snowy;
+                default: return R.drawable.danieledesantis_weather_icons_night_cloudy;
             }
         }
     }
