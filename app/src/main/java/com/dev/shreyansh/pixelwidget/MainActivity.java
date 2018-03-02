@@ -20,7 +20,10 @@ import android.os.Bundle;
 import android.text.Html;
 import android.util.Log;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -70,6 +73,7 @@ public class MainActivity extends AppCompatActivity {
     TextView sunrise;
     TextView sunset;
     ImageView weatherImage;
+    LinearLayout hero;
 
     /* Network state */
     boolean isWiFi;
@@ -136,7 +140,7 @@ public class MainActivity extends AppCompatActivity {
             Log.e(TAG,e.toString());
             this.getSupportActionBar().setTitle("Pixel Weather");
         }
-
+        hero.setVisibility(View.INVISIBLE);
         /* Request for location access if we don't have access already */
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
@@ -209,7 +213,12 @@ public class MainActivity extends AppCompatActivity {
     /* Update the changed location and UI with it */
     public void setLocation(Location newLocation) {
         location = newLocation;
-        writeDataToUI();
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                writeDataToUI();
+            }
+        });
     }
 
     /* Bind necessary elements of UI to this code */
@@ -226,6 +235,7 @@ public class MainActivity extends AppCompatActivity {
         sunrise = findViewById(R.id.sunrise);
         sunset = findViewById(R.id.sunset);
         weatherImage = findViewById(R.id.current_weather_image);
+        hero = findViewById(R.id.hero_layout);
     }
 
     /* Check if required version of play services is available in device or not */
@@ -266,7 +276,12 @@ public class MainActivity extends AppCompatActivity {
                     LocationServices.FusedLocationApi.requestLocationUpdates(googleApiClient, locationRequest, locationListener);
                     location = LocationServices.FusedLocationApi.getLastLocation(googleApiClient);
                     Log.i(TAG, String.valueOf(location.getLatitude()) + " " + location.getLongitude());
-                    writeDataToUI();
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            writeDataToUI();
+                        }
+                    });
                 }
             }
 
@@ -296,7 +311,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /* Write Weather Data to UI */
-    public synchronized void writeDataToUI(){
+    public void writeDataToUI(){
         if (location != null) {
             try {
                 /* Get weather data  */
@@ -321,6 +336,9 @@ public class MainActivity extends AppCompatActivity {
                 sunset.setText(weather.getSunset());
                 weatherImage.setImageResource(returnImageRes(weather.getDescription(), weather.getIsDayTime()));
                 pd.dismiss();
+                hero.setVisibility(View.VISIBLE);
+                Animation fadeIn = AnimationUtils.loadAnimation(this, R.anim.fade_in);
+                hero.startAnimation(fadeIn);
             } catch (Exception e) {
                 Log.e(TAG, e.toString());
             }

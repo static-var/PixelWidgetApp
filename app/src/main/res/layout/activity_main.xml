@@ -17,6 +17,7 @@
             android:orientation="vertical">
 
             <LinearLayout
+                android:id="@+id/hero_layout"
                 android:padding="16dp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -42,16 +43,25 @@
                     android:layout_height="wrap_content"
                     android:gravity="center"
                     android:layout_marginBottom="8dp"
-                    android:textSize="24sp" />
+                    android:textSize="48sp" />
 
                 <LinearLayout
-                    android:layout_margin="16dp"
+                    android:layout_marginTop="16dp"
+                    android:layout_marginBottom="16dp"
                     android:paddingTop="18dp"
                     android:paddingBottom="18dp"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:weightSum="2">
+
+                    <ImageView
+                        android:id="@+id/current_weather_image"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:src="@drawable/danieledesantis_weather_icons_night_clear"
+                        android:contentDescription="Weather Image"/>
 
                     <TextView
                         android:id="@+id/current_big_temp"
@@ -60,15 +70,7 @@
                         android:gravity="center"
                         android:text="lol"
                         android:textSize="52dp"
-                        android:layout_weight="1"/>
-
-                    <ImageView
-                        android:id="@+id/current_weather_image"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:src="@drawable/danieledesantis_weather_icons_night_clear"
-                        android:contentDescription="Weather Image"/>
+                        android:layout_weight="1" />
 
                 </LinearLayout>
 
