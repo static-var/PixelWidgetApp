@@ -32,9 +32,11 @@ import android.widget.Toast;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.tasks.OnSuccessListener;
 
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
@@ -87,6 +89,7 @@ public class MainActivity extends AppCompatActivity {
     private final static int PLAY_SERVICES_RESOLUTION_REQUEST = 1000;
     private LocationRequest locationRequest;
     private LocationListener locationListener;
+    private FusedLocationProviderClient fusedLocationProviderClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -276,12 +279,19 @@ public class MainActivity extends AppCompatActivity {
             public synchronized void onConnected(@Nullable Bundle bundle) {
                 if(ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION)
                         == PackageManager.PERMISSION_GRANTED && locationManager != null) {
+                    locationManager =  (LocationManager) getSystemService(Context.LOCATION_SERVICE);
                     LocationServices.FusedLocationApi.requestLocationUpdates(googleApiClient, locationRequest, locationListener);
                     location = LocationServices.FusedLocationApi.getLastLocation(googleApiClient);
-                    Log.i(TAG, String.valueOf(location.getLatitude()) + " " + location.getLongitude());
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
+                            pd = new ProgressDialog(MainActivity.this);
+                            pd.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+                            pd.setTitle("Fetching");
+                            pd.setMessage("Fetching weather detail.");
+                            pd.setIndeterminate(true);
+                            pd.setCancelable(false);
+                            pd.show();
                             writeDataToUI();
                         }
                     });
@@ -318,13 +328,6 @@ public class MainActivity extends AppCompatActivity {
         if (location != null) {
             try {
                 /* Get weather data  */
-                pd = new ProgressDialog(this);
-                pd.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-                pd.setTitle("Fetching");
-                pd.setMessage("Fetching weather detail.");
-                pd.setIndeterminate(true);
-                pd.setCancelable(false);
-                pd.show();
                 new Handler().postDelayed(new Runnable() {
                     @Override
                     public void run() {
@@ -355,6 +358,14 @@ public class MainActivity extends AppCompatActivity {
             } catch (Exception e) {
                 Log.e(TAG, e.toString());
             }
+        } else {
+            fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
+            fusedLocationProviderClient.getLastLocation().addOnSuccessListener(this, new OnSuccessListener<Location>() {
+                @Override
+                public void onSuccess(Location location) {
+                    setLocation(location);
+                }
+            });
         }
     }
 
