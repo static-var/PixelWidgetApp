@@ -161,14 +161,6 @@ public class MainActivity extends AppCompatActivity {
                 buildGoogleApiClient();
                 googleApiClient.connect();
             }
-
-            /* Find Current day of the week
-             * Add HTML style to it */
-            sdf = new SimpleDateFormat("EEEE");
-            currentDate = "<b>" + sdf.format(System.currentTimeMillis()) + "</b>";
-            sdf = new SimpleDateFormat("dd");
-            currentDate = currentDate + ", " + sdf.format(System.currentTimeMillis());
-            currentDateTV.setText(Html.fromHtml(currentDate));
         }
     }
 
@@ -242,6 +234,14 @@ public class MainActivity extends AppCompatActivity {
         sunset = findViewById(R.id.sunset);
         weatherImage = findViewById(R.id.current_weather_image);
         hero = findViewById(R.id.hero_layout);
+
+        /* Find Current day of the week
+         * Add HTML style to it */
+        sdf = new SimpleDateFormat("EEEE");
+        currentDate = "<b>" + sdf.format(System.currentTimeMillis()) + "</b>";
+        sdf = new SimpleDateFormat("dd");
+        currentDate = currentDate + ", " + sdf.format(System.currentTimeMillis());
+        currentDateTV.setText(Html.fromHtml(currentDate));
     }
 
     /* Check if required version of play services is available in device or not */
