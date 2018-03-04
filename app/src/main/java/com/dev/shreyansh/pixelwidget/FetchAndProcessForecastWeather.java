@@ -11,6 +11,7 @@ import org.apache.http.util.EntityUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -20,9 +21,9 @@ import java.util.List;
 public class FetchAndProcessForecastWeather {
     private final static String TAG = "F&P-ForecastWeather";
 
-    private List<ForecastSingleDayWeather> forecastSingleDayWeathers;
+    private ArrayList<ForecastSingleDayWeather> forecastSingleDayWeathers = new ArrayList<>();
 
-    private String query = "http://api.openweathermap.org/data/2.5/forecast?lat=%s&lon=%s&units=metric&cnt=8&appid=%s";
+    private String query = "http://api.openweathermap.org/data/2.5/forecast/daily?lat=%s&lon=%s&units=metric&cnt=8&appid=%s";
     private double latitude;
     private double longitude;
 
@@ -38,6 +39,9 @@ public class FetchAndProcessForecastWeather {
         Log.i(TAG, query);
     }
 
+    public FetchAndProcessForecastWeather() {
+    }
+
     /* Fetch data in AsyncTask */
     public JSONObject fetchData() {
         client = new DefaultHttpClient();
@@ -48,14 +52,14 @@ public class FetchAndProcessForecastWeather {
             HttpEntity entity = httpResponse.getEntity();
             return new JSONObject(EntityUtils.toString(entity));
         } catch (Exception e) {
-            Log.i(TAG, e.toString());
+            Log.e(TAG, e.toString());
             return null;
         }
     }
 
     /* Return the forecast in a list */
     public List<ForecastSingleDayWeather> processData(JSONObject data) {
-        forecastSingleDayWeathers = null;
+        Log.i(TAG, String.valueOf(data));
         try {
             /*
              * If location exists the return will be 200
@@ -85,19 +89,20 @@ public class FetchAndProcessForecastWeather {
                      * Process JSONObject and set all the attributes of
                      * Forecast class as per the processed JSONObject
                      */
-                    singleDayWeather.setDateText(singleData.getString("dt_txt"));
-                    subObject = singleData.getJSONObject("main");
-                    singleDayWeather.setTemperature(subObject.getDouble("temp"));
-                    singleDayWeather.setMinTemperature(subObject.getDouble("temp_min"));
-                    singleDayWeather.setMaxTemperature(subObject.getDouble("temp_max"));
-                    singleDayWeather.setHumidity(subObject.getDouble("humidity"));
-                    subObject = singleData.getJSONObject("wind");
-                    singleDayWeather.setWindspeed(subObject.getDouble("speed"));
-                    subObject = new JSONArray(singleData.getJSONArray("weather")).getJSONObject(0);
+                    singleDayWeather.setDateText(singleData.getString("dt"));
+                    subObject = singleData.getJSONObject("temp");
+                    singleDayWeather.setTemperature(subObject.getDouble("day"));
+                    singleDayWeather.setMinTemperature(subObject.getDouble("min"));
+                    singleDayWeather.setMaxTemperature(subObject.getDouble("max"));
+                    singleDayWeather.setHumidity(singleData.getDouble("humidity"));
+                    singleDayWeather.setWindspeed(singleData.getDouble("speed"));
+                    JSONArray obj = singleData.getJSONArray("weather");
+                    subObject = obj.getJSONObject(0);
                     singleDayWeather.setMainWeather(subObject.getString("main"));
                     singleDayWeather.setDescWeather(subObject.getString("description"));
 
                     /* add each day's fetched data to List of forecast class */
+                    Log.i(TAG, String.valueOf(singleDayWeather.getMainWeather()));
                     forecastSingleDayWeathers.add(singleDayWeather);
                 }
             } else {
@@ -105,7 +110,7 @@ public class FetchAndProcessForecastWeather {
                 Log.i(TAG, "Location Data not available");
             }
         } catch (Exception e) {
-            Log.i(TAG, e.toString());
+            Log.e(TAG, "Error", e);
         }
 
         /* This will be either null or it will have all the date */
