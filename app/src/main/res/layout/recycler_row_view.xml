@@ -10,6 +10,7 @@
         android:id="@+id/forecast_weather_image"
         android:layout_width="0dp"
         android:layout_height="match_parent"
+        android:paddingStart="8dp"
         android:layout_weight="1"
         android:contentDescription="Weather Image" />
 
@@ -17,6 +18,8 @@
         android:id="@+id/forecast_day_text"
         android:layout_width="0dp"
         android:layout_height="match_parent"
+        android:paddingStart="8dp"
+        android:gravity="start|center_vertical"
         android:layout_weight="6"
         android:textColor="@android:color/black" />
 
@@ -24,6 +27,7 @@
         android:id="@+id/forecast_day_temp"
         android:layout_width="0dp"
         android:layout_height="match_parent"
+        android:gravity="start|center_vertical"
         android:layout_weight="1"
         android:textColor="@color/primary_dark"/>
 
