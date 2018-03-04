@@ -114,29 +114,6 @@ public class MainActivity extends AppCompatActivity {
         /* Set Day and Date */
         setDayAndDate();
 
-        /* Check the network status */
-        try {
-            ConnectivityManager cm =
-                    (ConnectivityManager) this.getSystemService(Context.CONNECTIVITY_SERVICE);
-            NetworkInfo activeNetwork = null;
-            activeNetwork = cm.getActiveNetworkInfo();
-            isConnected = activeNetwork != null &&
-                    activeNetwork.isConnectedOrConnecting();
-
-            Log.i(TAG, String.valueOf(isConnected));
-
-            isWiFi = activeNetwork.getType() == ConnectivityManager.TYPE_WIFI;
-            Log.i(TAG, String.valueOf(isWiFi));
-
-            if (!(isConnected || isWiFi))
-                networkStatus.setVisibility(View.VISIBLE);
-            else
-                networkStatus.setVisibility(View.GONE);
-        }
-        catch (Exception e) {
-            Log.e(TAG, e.toString());
-        }
-
         /* Workaround to change the font of ActionBar */
         try {
             TextView tv = new TextView(getApplicationContext());
@@ -162,7 +139,13 @@ public class MainActivity extends AppCompatActivity {
             this.getSupportActionBar().setTitle("Pixel Weather");
         }
 
+        /*
+         * Hide Hero section
+         * It will load when the data is fetched from the internet
+         */
         hero.setVisibility(View.INVISIBLE);
+        recyclerView.setVisibility(View.INVISIBLE);
+
         /* Request for location access if we don't have access already */
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
@@ -171,7 +154,6 @@ public class MainActivity extends AppCompatActivity {
             ActivityCompat.requestPermissions(this, new String[] { Manifest.permission.ACCESS_COARSE_LOCATION },
                     PERMISSION_ACCESS_COARSE_LOCATION);
         } else {
-
             if (checkPlayServices()){
                 initialiseManagerListener();
                 buildGoogleApiClient();
@@ -215,7 +197,6 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onLocationChanged(Location location) {
                 try {
-                    Log.i(TAG,String.valueOf(location.getLatitude() +" "+ location.getLongitude()));
                     setLocation(location);
                 } catch (Exception e) {
                     //
@@ -226,9 +207,11 @@ public class MainActivity extends AppCompatActivity {
 
     /* Update the changed location and UI with it */
     public void setLocation(Location newLocation) {
-        if(newLocation.getLongitude() != location.getLongitude() && newLocation.getLatitude() != location.getLatitude()) {
-            location = newLocation;
-            writeDataToUI();
+        if(checkNetwork()) {
+            if (newLocation.getLongitude() != location.getLongitude() && newLocation.getLatitude() != location.getLatitude()) {
+                location = newLocation;
+                writeDataToUI();
+            }
         }
     }
 
@@ -323,8 +306,11 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onDestroy(){
         super.onDestroy();
-        if(googleApiClient != null &&googleApiClient.isConnected()) {
+        if(googleApiClient != null && googleApiClient.isConnected()) {
             googleApiClient.disconnect();
+        }
+        if(LocationServices.FusedLocationApi != null) {
+            LocationServices.FusedLocationApi.removeLocationUpdates(googleApiClient, locationListener);
         }
     }
 
@@ -372,8 +358,10 @@ public class MainActivity extends AppCompatActivity {
                                 weatherImage.setImageResource(returnImageRes(weather.getDescription(), weather.getIsDayTime()));
                                 pd.dismiss();
                                 hero.setVisibility(View.VISIBLE);
+                                recyclerView.setVisibility(View.VISIBLE);
                                 Animation fadeIn = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fade_in);
                                 hero.startAnimation(fadeIn);
+                                recyclerView.startAnimation(fadeIn);
                             }
                         } catch (Exception e) {
                             Log.e(TAG,e.toString());
@@ -387,12 +375,15 @@ public class MainActivity extends AppCompatActivity {
             }
         } else {
             fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
-            fusedLocationProviderClient.getLastLocation().addOnSuccessListener(this, new OnSuccessListener<Location>() {
-                @Override
-                public void onSuccess(Location location) {
-                    setLocation(location);
-                }
-            });
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                    != PackageManager.PERMISSION_GRANTED) {
+                fusedLocationProviderClient.getLastLocation().addOnSuccessListener(this, new OnSuccessListener<Location>() {
+                    @Override
+                    public void onSuccess(Location location) {
+                        setLocation(location);
+                    }
+                });
+            }
         }
     }
 
@@ -422,6 +413,36 @@ public class MainActivity extends AppCompatActivity {
                 case "snow": return R.drawable.danieledesantis_weather_icons_night_snowy;
                 default: return R.drawable.danieledesantis_weather_icons_night_cloudy;
             }
+        }
+    }
+
+    public boolean checkNetwork() {
+        /* Check the network status */
+        try {
+            ConnectivityManager cm =
+                    (ConnectivityManager) this.getSystemService(Context.CONNECTIVITY_SERVICE);
+            NetworkInfo activeNetwork = null;
+            activeNetwork = cm.getActiveNetworkInfo();
+            isConnected = activeNetwork != null &&
+                    activeNetwork.isConnectedOrConnecting();
+
+            Log.i(TAG, String.valueOf(isConnected));
+
+            isWiFi = activeNetwork.getType() == ConnectivityManager.TYPE_WIFI;
+            Log.i(TAG, String.valueOf(isWiFi));
+
+            if (!(isConnected || isWiFi)) {
+                networkStatus.setVisibility(View.VISIBLE);
+                return false;
+            }
+            else {
+                networkStatus.setVisibility(View.GONE);
+                return true;
+            }
+        }
+        catch (Exception e) {
+            Log.e(TAG, e.toString());
+            return false;
         }
     }
 }
