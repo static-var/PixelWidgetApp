@@ -91,18 +91,21 @@ public class FetchAndProcessForecastWeather {
                      */
                     singleDayWeather.setDateText(singleData.getString("dt"));
                     subObject = singleData.getJSONObject("temp");
-                    singleDayWeather.setTemperature(subObject.getDouble("day"));
+                    singleDayWeather.setDayTemperature(subObject.getDouble("day"));
                     singleDayWeather.setMinTemperature(subObject.getDouble("min"));
                     singleDayWeather.setMaxTemperature(subObject.getDouble("max"));
+                    singleDayWeather.setMorningTemperature(subObject.getDouble("morn"));
+                    singleDayWeather.setEveningTemperature(subObject.getDouble("eve"));
+                    singleDayWeather.setNightTemperature(subObject.getDouble("night"));
                     singleDayWeather.setHumidity(singleData.getDouble("humidity"));
                     singleDayWeather.setWindspeed(singleData.getDouble("speed"));
+                    singleDayWeather.setCloudiness(singleData.getDouble("clouds"));
                     JSONArray obj = singleData.getJSONArray("weather");
                     subObject = obj.getJSONObject(0);
                     singleDayWeather.setMainWeather(subObject.getString("main"));
                     singleDayWeather.setDescWeather(subObject.getString("description"));
 
                     /* add each day's fetched data to List of forecast class */
-                    Log.i(TAG, String.valueOf(singleDayWeather.getMainWeather()));
                     forecastSingleDayWeathers.add(singleDayWeather);
                 }
             } else {
