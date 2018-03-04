@@ -23,7 +23,7 @@ public class FetchAndProcessForecastWeather {
 
     private ArrayList<ForecastSingleDayWeather> forecastSingleDayWeathers = new ArrayList<>();
 
-    private String query = "http://api.openweathermap.org/data/2.5/forecast/daily?lat=%s&lon=%s&units=metric&cnt=8&appid=%s";
+    private String query = "http://api.openweathermap.org/data/2.5/forecast/daily?lat=%s&lon=%s&units=metric&cnt=15&appid=%s";
     private double latitude;
     private double longitude;
 
@@ -74,7 +74,7 @@ public class FetchAndProcessForecastWeather {
 
                 /* Should be 8 */
                 int len = allForecast.length();
-                /* Take Forecast for next 7 days */
+                /* Take Forecast for next 14 days */
                 for (int i = 1; i < len; i++) {
                     /* Process Forecast of one day at a time */
                     singleData = allForecast.getJSONObject(i);
