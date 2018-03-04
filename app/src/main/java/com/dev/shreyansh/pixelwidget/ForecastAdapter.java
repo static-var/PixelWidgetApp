@@ -50,7 +50,7 @@ public class ForecastAdapter extends RecyclerView.Adapter<ForecastAdapter.MyView
         ForecastSingleDayWeather forecastSingleDayWeather = forecastSingleDayWeathers.get(position);
         holder.forecastImage.setImageResource(returnImageRes(forecastSingleDayWeather.getDescWeather()));
         holder.forecastDay.setText(Html.fromHtml(forecastSingleDayWeather.getDateText()));
-        holder.forecastTemp.setText(String.valueOf(forecastSingleDayWeather.getDayTemperature()));
+        holder.forecastTemp.setText(String.valueOf(forecastSingleDayWeather.getDayTemperature()) + (char) 0x00B0+ " C");
     }
 
     private int returnImageRes(String weather) {
