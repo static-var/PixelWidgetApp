@@ -61,3 +61,6 @@ freeline_project_description.json
 
 # Open Weather API key
 *OpenWeatherKey*
+
+# Apk folder 
+app/release/*
