@@ -18,6 +18,9 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.DefaultItemAnimator;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.text.Html;
 import android.util.Log;
 import android.view.View;
@@ -42,6 +45,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
 
 import java.text.SimpleDateFormat;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -49,7 +53,7 @@ public class MainActivity extends AppCompatActivity {
     private static final int UPDATE_DURATION = 10000;
     private static final int DISPLACEMENT = 10;
     private static final int FASTEST_UPDATE = 1000;
-    private static final char degree = (char) 0x00B0;
+    private static final String degree = (char) 0x00B0+" C";
 
     private LocationManager locationManager;
     public Location location;
@@ -61,6 +65,7 @@ public class MainActivity extends AppCompatActivity {
     private SimpleDateFormat sdf;
 
     private JSONObject weatherData;
+    private JSONObject forecastData;
     private Weather weather;
 
     /* UI Elements */
@@ -77,6 +82,7 @@ public class MainActivity extends AppCompatActivity {
     TextView sunset;
     ImageView weatherImage;
     LinearLayout hero;
+    RecyclerView recyclerView;
 
     ProgressDialog pd;
 
@@ -90,6 +96,12 @@ public class MainActivity extends AppCompatActivity {
     private LocationRequest locationRequest;
     private LocationListener locationListener;
     private FusedLocationProviderClient fusedLocationProviderClient;
+
+    /* Forecast data */
+    private List<ForecastSingleDayWeather> forecastSingleDayWeathers;
+
+    /* Adapter for Forecast */
+    private ForecastAdapter forecastAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -149,6 +161,7 @@ public class MainActivity extends AppCompatActivity {
             Log.e(TAG,e.toString());
             this.getSupportActionBar().setTitle("Pixel Weather");
         }
+
         hero.setVisibility(View.INVISIBLE);
         /* Request for location access if we don't have access already */
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
@@ -213,13 +226,10 @@ public class MainActivity extends AppCompatActivity {
 
     /* Update the changed location and UI with it */
     public void setLocation(Location newLocation) {
-        location = newLocation;
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                writeDataToUI();
-            }
-        });
+        if(newLocation.getLongitude() != location.getLongitude() && newLocation.getLatitude() != location.getLatitude()) {
+            location = newLocation;
+            writeDataToUI();
+        }
     }
 
     /* Bind necessary elements of UI to this code */
@@ -237,6 +247,7 @@ public class MainActivity extends AppCompatActivity {
         sunset = findViewById(R.id.sunset);
         weatherImage = findViewById(R.id.current_weather_image);
         hero = findViewById(R.id.hero_layout);
+        recyclerView = findViewById(R.id.recyclerView);
     }
 
     /* Function to set Current Day and date in UI */
@@ -288,19 +299,7 @@ public class MainActivity extends AppCompatActivity {
                     locationManager =  (LocationManager) getSystemService(Context.LOCATION_SERVICE);
                     LocationServices.FusedLocationApi.requestLocationUpdates(googleApiClient, locationRequest, locationListener);
                     location = LocationServices.FusedLocationApi.getLastLocation(googleApiClient);
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            pd = new ProgressDialog(MainActivity.this);
-                            pd.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-                            pd.setTitle("Fetching");
-                            pd.setMessage("Fetching weather detail.");
-                            pd.setIndeterminate(true);
-                            pd.setCancelable(false);
-                            pd.show();
-                            writeDataToUI();
-                        }
-                    });
+                    writeDataToUI();
                 }
             }
 
@@ -330,7 +329,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /* Write Weather Data to UI */
-    public void writeDataToUI(){
+    public synchronized void writeDataToUI(){
         if (location != null) {
             try {
                 /* Get weather data  */
@@ -338,30 +337,52 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         try {
+                            pd = new ProgressDialog(MainActivity.this);
+                            pd.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+                            pd.setTitle("Fetching");
+                            pd.setMessage("Fetching weather detail.");
+                            pd.setIndeterminate(true);
+                            pd.setCancelable(false);
+                            pd.show();
                             weatherData = new FetchAsync().execute(location.getLatitude(), location.getLongitude()).get();
                             weather = new Weather(weatherData);
+                            forecastData = new FetchAsyncForecast().execute(location.getLatitude(), location.getLongitude()).get();
+                            FetchAndProcessForecastWeather dummy = new FetchAndProcessForecastWeather();
+                            if(forecastData != null) {
+                                forecastSingleDayWeathers = dummy.processData(forecastData);
+                                Log.i(TAG, String.valueOf(forecastSingleDayWeathers.size()));
+                                forecastAdapter = new ForecastAdapter(forecastSingleDayWeathers);
+                                RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(MainActivity.this);
+                                recyclerView.setLayoutManager(layoutManager);
+                                recyclerView.setHasFixedSize(true);
+                                recyclerView.setItemAnimator(new DefaultItemAnimator());
+                                recyclerView.addItemDecoration(new DividerItemDecoration(MainActivity.this, null));
+                                recyclerView.setAdapter(forecastAdapter);
+
+                                /* Set Data in UI */
+                                currentBigTemp.setText(String.valueOf(weather.getCurrentTemperature()) + degree);
+                                currentCity.setText(Html.fromHtml(weather.getCityName() + ", <b>" + weather.getCountryCode() + "</b>"));
+                                maxTemp.setText(String.valueOf(weather.getMaxTemperature()) + degree);
+                                minTemp.setText(String.valueOf(weather.getMinTemperature()) + degree);
+                                weatherDesc.setText(Html.fromHtml(" <b>"+weather.getMain()+"</b> - "+ StringUtils.capitalize(weather.getDescription())));
+                                humidity.setText(String.valueOf(weather.getHumidity()) + degree);
+                                wind.setText(String.valueOf(weather.getWindSpeed()) + " m/s");
+                                sunrise.setText(weather.getSunrise());
+                                sunset.setText(weather.getSunset());
+                                weatherImage.setImageResource(returnImageRes(weather.getDescription(), weather.getIsDayTime()));
+                                pd.dismiss();
+                                hero.setVisibility(View.VISIBLE);
+                                Animation fadeIn = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fade_in);
+                                hero.startAnimation(fadeIn);
+                            }
                         } catch (Exception e) {
                             Log.e(TAG,e.toString());
                         }
-                        /* Set Data in UI */
-                        currentBigTemp.setText(String.valueOf(weather.getCurrentTemperature()) + degree);
-                        currentCity.setText(Html.fromHtml(weather.getCityName() + ", <b>" + weather.getCountryCode() + "</b>"));
-                        maxTemp.setText(String.valueOf(weather.getMaxTemperature()) + degree);
-                        minTemp.setText(String.valueOf(weather.getMinTemperature()) + degree);
-                        weatherDesc.setText(Html.fromHtml(" <b>"+weather.getMain()+"</b> - "+ StringUtils.capitalize(weather.getDescription())));
-                        humidity.setText(String.valueOf(weather.getHumidity()) + degree);
-                        wind.setText(String.valueOf(weather.getWindSpeed()) + " km/h");
-                        sunrise.setText(weather.getSunrise());
-                        sunset.setText(weather.getSunset());
-                        weatherImage.setImageResource(returnImageRes(weather.getDescription(), weather.getIsDayTime()));
-                        pd.dismiss();
-                        hero.setVisibility(View.VISIBLE);
-                        Animation fadeIn = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fade_in);
-                        hero.startAnimation(fadeIn);
                     }
-                }, 0);
+                },100);
 
-            } catch (Exception e) {
+            }
+            catch (Exception e) {
                 Log.e(TAG, e.toString());
             }
         } else {
