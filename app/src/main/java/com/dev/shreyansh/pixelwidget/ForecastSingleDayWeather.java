@@ -8,7 +8,10 @@ public class ForecastSingleDayWeather {
     private final static String TAG = "ForecastSingleDayWeatherClass";
 
     /* Add attributes of class */
-    private double temperature;
+    private double dayTemperature;
+    private double nightTemperature;
+    private double eveningTemperature;
+    private double morningTemperature;
     private double minTemperature;
     private double maxTemperature;
     private String mainWeather;
@@ -16,6 +19,7 @@ public class ForecastSingleDayWeather {
     private double humidity;
     private String dateText;
     private double windspeed;
+    private double cloudiness;
 
     /* Default Empty Constructor */
     public ForecastSingleDayWeather() {
@@ -24,18 +28,30 @@ public class ForecastSingleDayWeather {
 
     /* Default Parametrised constructor */
     public ForecastSingleDayWeather(double temperature, double maxTemperature, double minTemperature) {
-        this.temperature = temperature;
+        this.dayTemperature = temperature;
         this.maxTemperature = maxTemperature;
         this.minTemperature = minTemperature;
     }
 
     /* All Setter Functions */
-    public void setTemperature(double temperature){
-        this.temperature = temperature;
+    public void setDayTemperature(double temperature){
+        this.dayTemperature = temperature;
     }
 
     public void setMinTemperature(double minTemperature){
         this.minTemperature = minTemperature;
+    }
+
+    public void setMorningTemperature(double morningTemperature) {
+        this.morningTemperature = morningTemperature;
+    }
+
+    public void setNightTemperature(double nightTemperature) {
+        this.nightTemperature = nightTemperature;
+    }
+
+    public void setEveningTemperature(double eveningTemperature) {
+        this.eveningTemperature = eveningTemperature;
     }
 
     public void setMaxTemperature(double maxTemperature){
@@ -62,9 +78,25 @@ public class ForecastSingleDayWeather {
         this.windspeed = windspeed;
     }
 
+    public void setCloudiness(double cloudiness){
+        this.cloudiness = cloudiness;
+    }
+
     /* All Getter Functions */
-    public double getTemperature(){
-        return temperature;
+    public double getDayTemperature(){
+        return dayTemperature;
+    }
+
+    public double getNightTemperature() {
+        return nightTemperature;
+    }
+
+    public double getEveningTemperature() {
+        return eveningTemperature;
+    }
+
+    public double getMorningTemperature() {
+        return morningTemperature;
     }
 
     public double getMinTemperature(){
@@ -93,5 +125,9 @@ public class ForecastSingleDayWeather {
 
     public double getWindspeed() {
         return windspeed;
+    }
+
+    public double getCloudiness() {
+        return cloudiness;
     }
 }
