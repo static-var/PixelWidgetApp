@@ -1,6 +1,7 @@
 package com.dev.shreyansh.pixelwidget;
 
 import android.support.v7.widget.RecyclerView;
+import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -48,7 +49,7 @@ public class ForecastAdapter extends RecyclerView.Adapter<ForecastAdapter.MyView
     public void onBindViewHolder(MyViewHolder holder, int position) {
         ForecastSingleDayWeather forecastSingleDayWeather = forecastSingleDayWeathers.get(position);
         holder.forecastImage.setImageResource(returnImageRes(forecastSingleDayWeather.getDescWeather()));
-        holder.forecastDay.setText(forecastSingleDayWeather.getDateText());
+        holder.forecastDay.setText(Html.fromHtml(forecastSingleDayWeather.getDateText()));
         holder.forecastTemp.setText(String.valueOf(forecastSingleDayWeather.getDayTemperature()));
     }
 
