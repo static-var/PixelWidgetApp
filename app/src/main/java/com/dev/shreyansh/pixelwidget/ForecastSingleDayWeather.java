@@ -15,6 +15,7 @@ public class ForecastSingleDayWeather {
     private String descWeather;
     private double humidity;
     private String dateText;
+    private double windspeed;
 
     /* Default Empty Constructor */
     public ForecastSingleDayWeather() {
@@ -57,6 +58,10 @@ public class ForecastSingleDayWeather {
         this.humidity = humidity;
     }
 
+    public void setWindspeed(double windspeed) {
+        this.windspeed = windspeed;
+    }
+
     /* All Getter Functions */
     public double getTemperature(){
         return temperature;
@@ -84,5 +89,9 @@ public class ForecastSingleDayWeather {
 
     public double getHumidity(){
         return humidity;
+    }
+
+    public double getWindspeed() {
+        return windspeed;
     }
 }
