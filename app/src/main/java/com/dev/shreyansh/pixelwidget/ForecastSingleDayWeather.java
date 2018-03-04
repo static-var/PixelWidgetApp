@@ -132,7 +132,7 @@ public class ForecastSingleDayWeather {
         String day = simpleDateFormat.format(new Date(epochTime));
 
         /* Format to get Date alone */
-        simpleDateFormat = new SimpleDateFormat("MMMM,dd");
+        simpleDateFormat = new SimpleDateFormat("MMMM dd");
         String date = simpleDateFormat.format(new Date(epochTime));
 
         return "<b>"+day+"</b>, "+date;
