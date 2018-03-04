@@ -27,7 +27,6 @@ public class FetchWeatherJSON {
     private boolean fahrenheit;
     private JSONObject data;
     private Context appContext;
-    private OpenWeatherKey openWeatherKey;
 
     private HttpClient client;
     private HttpGet httpGet;
@@ -41,7 +40,6 @@ public class FetchWeatherJSON {
         this.latitude = latitude;
         this.longitude = longitude;
         fahrenheit = false;
-        openWeatherKey = new OpenWeatherKey();
         weatherURL = String.format(weatherURL,latitude,longitude,OpenWeatherKey.KEY);
         Log.i(TAG,weatherURL);
     }
