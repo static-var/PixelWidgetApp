@@ -99,6 +99,9 @@ public class MainActivity extends AppCompatActivity {
         /* Bind necessary UI Elements with our code */
         bindUI();
 
+        /* Set Day and Date */
+        setDayAndDate();
+
         /* Check the network status */
         try {
             ConnectivityManager cm =
@@ -234,7 +237,10 @@ public class MainActivity extends AppCompatActivity {
         sunset = findViewById(R.id.sunset);
         weatherImage = findViewById(R.id.current_weather_image);
         hero = findViewById(R.id.hero_layout);
+    }
 
+    /* Function to set Current Day and date in UI */
+    public void setDayAndDate() {
         /* Find Current day of the week
          * Add HTML style to it */
         sdf = new SimpleDateFormat("EEEE");
