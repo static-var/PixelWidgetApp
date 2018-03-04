@@ -1,11 +1,16 @@
 package com.dev.shreyansh.pixelwidget;
 
+import android.util.Log;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 /**
  * Created by shreyansh on 3/4/18.
  */
 
 public class ForecastSingleDayWeather {
-    private final static String TAG = "ForecastSingleDayWeatherClass";
+    private final static String TAG = "SingleDayWeatherClass";
 
     /* Add attributes of class */
     private double dayTemperature;
@@ -20,6 +25,9 @@ public class ForecastSingleDayWeather {
     private String dateText;
     private double windspeed;
     private double cloudiness;
+
+    /* Convert Epoch time to human readable time */
+    SimpleDateFormat simpleDateFormat;
 
     /* Default Empty Constructor */
     public ForecastSingleDayWeather() {
@@ -116,7 +124,18 @@ public class ForecastSingleDayWeather {
     }
 
     public String getDateText(){
-        return dateText;
+        /* Convert String time to long as it is in epoch format */
+        Long epochTime = Long.parseLong(dateText)*1000;
+
+        /* Format to get Day */
+        simpleDateFormat = new SimpleDateFormat("EEEE");
+        String day = simpleDateFormat.format(new Date(epochTime));
+
+        /* Format to get Date alone */
+        simpleDateFormat = new SimpleDateFormat("dd");
+        String date = simpleDateFormat.format(new Date(epochTime));
+
+        return "<b>"+day+"</b>, "+date;
     }
 
     public double getHumidity(){
