@@ -163,17 +163,19 @@ public class MainActivity extends AppCompatActivity {
             ActivityCompat.requestPermissions(this, new String[] { Manifest.permission.ACCESS_COARSE_LOCATION },
                     PERMISSION_ACCESS_COARSE_LOCATION);
         } else {
-            final AlertDialog builder = new AlertDialog.Builder(context, R.style.AlertDialogStyle)
-                    .setCancelable(false)
-                    .setTitle("Locations are disabled")
-                    .setMessage("Enable location to use the app.")
-                    .show();
+
             if (checkPlayServices()){
+                final AlertDialog builder = new AlertDialog.Builder(context, R.style.AlertDialogStyle)
+                        .setCancelable(false)
+                        .setTitle("Locations are disabled")
+                        .setMessage("Enable location to use the app.")
+                        .show();
                 initialiseManagerListener();
                 buildGoogleApiClient();
                 googleApiClient.connect();
+                builder.dismiss();
             }
-            builder.dismiss();
+
         }
     }
 
@@ -203,11 +205,18 @@ public class MainActivity extends AppCompatActivity {
     /* Initialize listener, request and manager */
     public void initialiseManagerListener() {
         locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
-        locationRequest = LocationRequest.create()
-                .setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY)
+        if(locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER))
+            locationRequest = LocationRequest.create()
+                .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
                 .setInterval(UPDATE_DURATION)
                 .setSmallestDisplacement(DISPLACEMENT)
                 .setFastestInterval(FASTEST_UPDATE);
+        else
+            locationRequest = LocationRequest.create()
+                    .setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY)
+                    .setInterval(UPDATE_DURATION)
+                    .setSmallestDisplacement(DISPLACEMENT)
+                    .setFastestInterval(FASTEST_UPDATE);
         locationListener = new LocationListener() {
             @Override
             public void onLocationChanged(Location location) {
