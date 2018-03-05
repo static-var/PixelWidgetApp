@@ -163,18 +163,39 @@ public class MainActivity extends AppCompatActivity {
             ActivityCompat.requestPermissions(this, new String[] { Manifest.permission.ACCESS_COARSE_LOCATION },
                     PERMISSION_ACCESS_COARSE_LOCATION);
         } else {
-
-            if (checkPlayServices()){
-                final AlertDialog builder = new AlertDialog.Builder(context, R.style.AlertDialogStyle)
-                        .setCancelable(false)
-                        .setTitle("Locations are disabled")
-                        .setMessage("Enable location to use the app.")
-                        .show();
-                initialiseManagerListener();
-                buildGoogleApiClient();
-                googleApiClient.connect();
-                builder.dismiss();
-            }
+                    if(checkNetwork()) {
+                        if (checkPlayServices() && checkNetwork()){
+                            final AlertDialog builder = new AlertDialog.Builder(context, R.style.AlertDialogStyle)
+                                    .setCancelable(false)
+                                    .setTitle("Locations are disabled")
+                                    .setMessage("Enable location to use the app.")
+                                    .show();
+                            initialiseManagerListener();
+                            buildGoogleApiClient();
+                            googleApiClient.connect();
+                            builder.dismiss();
+                        }
+                    } else {
+                        final AlertDialog builder = new AlertDialog.Builder(this, R.style.AlertDialogStyle)
+                                .setCancelable(false)
+                                .setTitle("No Internet detected.")
+                                .setMessage("Enable internet to use the app.")
+                                .setPositiveButton("GO TO SETTINGS", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        Intent settings = new Intent(Settings.ACTION_WIRELESS_SETTINGS);
+                                        startActivity(settings);
+                                    }
+                                })
+                                .setNegativeButton("EXIT", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        finish();
+                                    }
+                                }).show();
+                        builder.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(getResources().getColor(R.color.colorAccent));
+                        builder.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(getResources().getColor(R.color.colorAccent));
+                    }
 
         }
     }
@@ -190,7 +211,7 @@ public class MainActivity extends AppCompatActivity {
                 }
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     /* Set listeners if location is granted */
-                    if (checkPlayServices()){
+                    if (checkPlayServices() && checkNetwork()){
                         initialiseManagerListener();
                         buildGoogleApiClient();
                         googleApiClient.connect();
@@ -468,26 +489,17 @@ public class MainActivity extends AppCompatActivity {
     public boolean checkNetwork() {
         /* Check the network status */
         try {
-            ConnectivityManager cm =
-                    (ConnectivityManager) this.getSystemService(Context.CONNECTIVITY_SERVICE);
-            NetworkInfo activeNetwork = null;
-            activeNetwork = cm.getActiveNetworkInfo();
-            isConnected = activeNetwork != null &&
-                    activeNetwork.isConnectedOrConnecting();
-
-            Log.i(TAG, String.valueOf(isConnected));
-
-            isWiFi = activeNetwork.getType() == ConnectivityManager.TYPE_WIFI;
-            Log.i(TAG, String.valueOf(isWiFi));
-
-            if (!(isConnected || isWiFi)) {
+            ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+            NetworkInfo netInfo = cm.getActiveNetworkInfo();
+            if (!(netInfo != null && netInfo.isConnected())) {
                 networkStatus.setVisibility(View.VISIBLE);
-                return false;
             }
             else {
                 networkStatus.setVisibility(View.GONE);
-                return true;
             }
+
+            //should check null because in airplane mode it will be null
+            return (netInfo != null && netInfo.isConnected());
         }
         catch (Exception e) {
             Log.e(TAG, e.toString());

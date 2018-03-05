@@ -11,8 +11,6 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
 import org.json.JSONObject;
 
-import java.net.URL;
-
 /**
  * Created by shreyansh on 2/14/18.
  */
