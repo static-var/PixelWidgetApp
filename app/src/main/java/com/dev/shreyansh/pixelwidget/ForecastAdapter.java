@@ -1,5 +1,8 @@
 package com.dev.shreyansh.pixelwidget;
 
+import android.content.Context;
+import android.content.Intent;
+import android.os.Bundle;
 import android.support.v7.widget.RecyclerView;
 import android.text.Html;
 import android.util.Log;
@@ -35,7 +38,12 @@ public class ForecastAdapter extends RecyclerView.Adapter<ForecastAdapter.MyView
 
         @Override
         public void onClick(View v){
-            // TODO : Start new Activity, with dayWeather bundled
+
+            Intent showForecast = new Intent(v.getContext(),ForecastDisplay.class);
+            Bundle bundle = new Bundle();
+            // TODO : Put entire data of ForecastSingleDayWeather in bundle one by one.
+            showForecast.putExtras(bundle);
+            v.getContext().startActivity(showForecast);
         }
     }
 
