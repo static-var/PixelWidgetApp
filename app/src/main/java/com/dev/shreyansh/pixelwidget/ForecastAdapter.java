@@ -2,6 +2,7 @@ package com.dev.shreyansh.pixelwidget;
 
 import android.support.v7.widget.RecyclerView;
 import android.text.Html;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -54,13 +55,19 @@ public class ForecastAdapter extends RecyclerView.Adapter<ForecastAdapter.MyView
     }
 
     private int returnImageRes(String weather) {
+        Log.i("-->",weather);
         switch (weather.toLowerCase().trim()) {
-            case "clear sky": return R.drawable.danieledesantis_weather_icons_sunny;
+            case "clear sky":
+            case "sky is clear":
+                return R.drawable.danieledesantis_weather_icons_sunny;
             case "few clouds":return R.drawable.danieledesantis_weather_icons_cloudy;
             case "scattered clouds": return R.drawable.danieledesantis_weather_icons_cloudy_two;
             case "broken clouds" : return R.drawable.danieledesantis_weather_icons_cloudy_three;
-            case "shower rain": return R.drawable.danieledesantis_weather_icons_rainy_two;
-            case "rain": return R.drawable.danieledesantis_weather_icons_rainy;
+            case "shower rain":
+            case "moderate rain": return R.drawable.danieledesantis_weather_icons_rainy_two;
+            case "rain":
+            case "light rain":
+                return R.drawable.danieledesantis_weather_icons_rainy;
             case "thunderstorm": return R.drawable.danieledesantis_weather_icons_stormy;
             case "snow": return R.drawable.danieledesantis_weather_icons_snowy;
             default: return R.drawable.danieledesantis_weather_icons_cloudy;
