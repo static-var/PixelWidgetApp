@@ -24,4 +24,7 @@
     <!-- Sunset Text -->
     <string name="sunset">Sunset</string>
 
+    <!-- Location Disabled by User String -->
+    <string name="location_disabled">Locations are Disabled. Click here to go to Location Settings.</string>
+
 </resources>

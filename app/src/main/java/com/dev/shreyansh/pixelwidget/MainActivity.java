@@ -2,8 +2,11 @@ package com.dev.shreyansh.pixelwidget;
 
 import android.Manifest;
 import android.app.ActionBar;
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.Typeface;
@@ -12,6 +15,7 @@ import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Handler;
+import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
@@ -80,6 +84,7 @@ public class MainActivity extends AppCompatActivity {
     TextView wind;
     TextView sunrise;
     TextView sunset;
+    TextView locationDisabled;
     ImageView weatherImage;
     LinearLayout hero;
     RecyclerView recyclerView;
@@ -103,10 +108,14 @@ public class MainActivity extends AppCompatActivity {
     /* Adapter for Forecast */
     private ForecastAdapter forecastAdapter;
 
+    Context context;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        context = MainActivity.this;
 
         /* Bind necessary UI Elements with our code */
         bindUI();
@@ -154,11 +163,17 @@ public class MainActivity extends AppCompatActivity {
             ActivityCompat.requestPermissions(this, new String[] { Manifest.permission.ACCESS_COARSE_LOCATION },
                     PERMISSION_ACCESS_COARSE_LOCATION);
         } else {
+            final AlertDialog builder = new AlertDialog.Builder(context, R.style.AlertDialogStyle)
+                    .setCancelable(false)
+                    .setTitle("Locations are disabled")
+                    .setMessage("Enable location to use the app.")
+                    .show();
             if (checkPlayServices()){
                 initialiseManagerListener();
                 buildGoogleApiClient();
                 googleApiClient.connect();
             }
+            builder.dismiss();
         }
     }
 
@@ -203,6 +218,41 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         };
+        boolean gps_enabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+        boolean network_enabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+
+        if(!(gps_enabled || network_enabled)) {
+            locationDisabled.setVisibility(View.VISIBLE);
+            final AlertDialog builder = new AlertDialog.Builder(this, R.style.AlertDialogStyle)
+                    .setCancelable(false)
+                    .setTitle("Locations are disabled")
+                    .setMessage("Enable location to use the app.")
+                    .setPositiveButton("GO TO SETTINGS", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            Intent settings = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                            startActivity(settings);
+                        }
+                    })
+                    .setNegativeButton("EXIT", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            finish();
+                        }
+                    }).show();
+            builder.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(getResources().getColor(R.color.colorAccent));
+            builder.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(getResources().getColor(R.color.colorAccent));
+
+        } else {
+            locationDisabled.setVisibility(View.INVISIBLE);
+        }
+        locationDisabled.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent settings = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                startActivity(settings);
+            }
+        });
     }
 
     /* Update the changed location and UI with it */
@@ -231,6 +281,7 @@ public class MainActivity extends AppCompatActivity {
         weatherImage = findViewById(R.id.current_weather_image);
         hero = findViewById(R.id.hero_layout);
         recyclerView = findViewById(R.id.recyclerView);
+        locationDisabled = findViewById(R.id.location_disabled);
     }
 
     /* Function to set Current Day and date in UI */
@@ -253,7 +304,7 @@ public class MainActivity extends AppCompatActivity {
                 GooglePlayServicesUtil.getErrorDialog(resultCode, this,
                         PLAY_SERVICES_RESOLUTION_REQUEST).show();
             } else {
-                Toast.makeText(getApplicationContext(),
+                Toast.makeText(this,
                         "This device is not supported.", Toast.LENGTH_LONG)
                         .show();
                 finish();
@@ -265,7 +316,7 @@ public class MainActivity extends AppCompatActivity {
 
     /* Build Google's FuseLocation Service */
     private synchronized void buildGoogleApiClient() {
-        googleApiClient = new GoogleApiClient.Builder(this)
+        googleApiClient = new GoogleApiClient.Builder(context)
                 .addConnectionCallbacks(ret())
                 .addOnConnectionFailedListener(retFail())
                 .addApi(LocationServices.API).build();
@@ -309,9 +360,6 @@ public class MainActivity extends AppCompatActivity {
         if(googleApiClient != null && googleApiClient.isConnected()) {
             googleApiClient.disconnect();
         }
-        if(LocationServices.FusedLocationApi != null) {
-            LocationServices.FusedLocationApi.removeLocationUpdates(googleApiClient, locationListener);
-        }
     }
 
     /* Write Weather Data to UI */
@@ -323,13 +371,6 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         try {
-                            pd = new ProgressDialog(MainActivity.this);
-                            pd.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-                            pd.setTitle("Fetching");
-                            pd.setMessage("Fetching weather detail.");
-                            pd.setIndeterminate(true);
-                            pd.setCancelable(false);
-                            pd.show();
                             weatherData = new FetchAsync().execute(location.getLatitude(), location.getLongitude()).get();
                             weather = new Weather(weatherData);
                             forecastData = new FetchAsyncForecast().execute(location.getLatitude(), location.getLongitude()).get();
@@ -338,11 +379,11 @@ public class MainActivity extends AppCompatActivity {
                                 forecastSingleDayWeathers = dummy.processData(forecastData);
                                 Log.i(TAG, String.valueOf(forecastSingleDayWeathers.size()));
                                 forecastAdapter = new ForecastAdapter(forecastSingleDayWeathers);
-                                RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(MainActivity.this);
+                                RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(context);
                                 recyclerView.setLayoutManager(layoutManager);
                                 recyclerView.setHasFixedSize(true);
                                 recyclerView.setItemAnimator(new DefaultItemAnimator());
-                                recyclerView.addItemDecoration(new DividerItemDecoration(MainActivity.this, null));
+                                recyclerView.addItemDecoration(new DividerItemDecoration(context, null));
                                 recyclerView.setAdapter(forecastAdapter);
 
                                 /* Set Data in UI */
@@ -356,7 +397,6 @@ public class MainActivity extends AppCompatActivity {
                                 sunrise.setText(weather.getSunrise());
                                 sunset.setText(weather.getSunset());
                                 weatherImage.setImageResource(returnImageRes(weather.getDescription(), weather.getIsDayTime()));
-                                pd.dismiss();
                                 hero.setVisibility(View.VISIBLE);
                                 recyclerView.setVisibility(View.VISIBLE);
                                 Animation fadeIn = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fade_in);
@@ -367,7 +407,7 @@ public class MainActivity extends AppCompatActivity {
                             Log.e(TAG,e.toString());
                         }
                     }
-                },100);
+                },0);
 
             }
             catch (Exception e) {
