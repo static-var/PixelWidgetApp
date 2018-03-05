@@ -164,7 +164,7 @@ public class MainActivity extends AppCompatActivity {
                     PERMISSION_ACCESS_COARSE_LOCATION);
         } else {
                     if(checkNetwork()) {
-                        if (checkPlayServices() && checkNetwork()){
+                        if (checkPlayServices()){
                             final AlertDialog builder = new AlertDialog.Builder(context, R.style.AlertDialogStyle)
                                     .setCancelable(false)
                                     .setTitle("Locations are disabled")
@@ -211,7 +211,7 @@ public class MainActivity extends AppCompatActivity {
                 }
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     /* Set listeners if location is granted */
-                    if (checkPlayServices() && checkNetwork()){
+                    if (checkPlayServices()){
                         initialiseManagerListener();
                         buildGoogleApiClient();
                         googleApiClient.connect();
@@ -292,6 +292,26 @@ public class MainActivity extends AppCompatActivity {
                 location = newLocation;
                 writeDataToUI();
             }
+        } else {
+            final AlertDialog builder = new AlertDialog.Builder(this, R.style.AlertDialogStyle)
+                    .setCancelable(false)
+                    .setTitle("No Internet detected.")
+                    .setMessage("Enable internet to use the app.")
+                    .setPositiveButton("GO TO SETTINGS", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            Intent settings = new Intent(Settings.ACTION_WIRELESS_SETTINGS);
+                            startActivity(settings);
+                        }
+                    })
+                    .setNegativeButton("EXIT", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            finish();
+                        }
+                    }).show();
+            builder.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(getResources().getColor(R.color.colorAccent));
+            builder.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(getResources().getColor(R.color.colorAccent));
         }
     }
 
