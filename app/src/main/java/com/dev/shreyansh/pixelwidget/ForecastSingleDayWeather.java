@@ -13,6 +13,7 @@ public class ForecastSingleDayWeather {
     private final static String TAG = "SingleDayWeatherClass";
 
     /* Add attributes of class */
+    private String cityName;
     private double dayTemperature;
     private double nightTemperature;
     private double eveningTemperature;
@@ -42,6 +43,10 @@ public class ForecastSingleDayWeather {
     }
 
     /* All Setter Functions */
+    public void setCityName(String cityName) {
+        this.cityName = cityName;
+    }
+
     public void setDayTemperature(double temperature){
         this.dayTemperature = temperature;
     }
@@ -91,6 +96,10 @@ public class ForecastSingleDayWeather {
     }
 
     /* All Getter Functions */
+    public String getCityName() {
+        return cityName;
+    }
+
     public double getDayTemperature(){
         return dayTemperature;
     }

@@ -72,7 +72,12 @@ public class FetchAndProcessForecastWeather {
                 JSONObject singleData;
                 JSONObject subObject;
 
-                /* Should be 8 */
+                /* Fetch city name */
+                String cityname;
+                data = data.getJSONObject("city");
+                cityname = data.getString("name");
+
+                /* Should be 15 */
                 int len = allForecast.length();
                 /* Take Forecast for next 14 days */
                 for (int i = 1; i < len; i++) {
@@ -89,6 +94,7 @@ public class FetchAndProcessForecastWeather {
                      * Process JSONObject and set all the attributes of
                      * Forecast class as per the processed JSONObject
                      */
+                    singleDayWeather.setCityName(cityname);
                     singleDayWeather.setDateText(singleData.getString("dt"));
                     subObject = singleData.getJSONObject("temp");
                     singleDayWeather.setDayTemperature(subObject.getDouble("day"));
