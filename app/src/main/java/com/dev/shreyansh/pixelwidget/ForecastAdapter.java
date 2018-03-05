@@ -8,6 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.List;
 
@@ -15,19 +16,26 @@ import java.util.List;
  * Created by shreyansh on 3/4/18.
  */
 
-public class ForecastAdapter extends RecyclerView.Adapter<ForecastAdapter.MyViewHolder> {
+public class ForecastAdapter extends RecyclerView.Adapter<ForecastAdapter.MyViewHolder>{
     private List<ForecastSingleDayWeather> forecastSingleDayWeathers;
 
-    public class MyViewHolder extends RecyclerView.ViewHolder {
+    public class MyViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
         public ImageView forecastImage;
         public TextView forecastDay;
         public TextView forecastTemp;
+        public ForecastSingleDayWeather dayWeather;
 
         public MyViewHolder(View view) {
             super(view);
             forecastImage = view.findViewById(R.id.forecast_weather_image);
             forecastDay = view.findViewById(R.id.forecast_day_text);
             forecastTemp = view.findViewById(R.id.forecast_day_temp);
+            view.setOnClickListener(this);
+        }
+
+        @Override
+        public void onClick(View v){
+            // TODO : Start new Activity, with dayWeather bundled
         }
     }
 
@@ -45,13 +53,13 @@ public class ForecastAdapter extends RecyclerView.Adapter<ForecastAdapter.MyView
         View itemView = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.recycler_row_view, viewGroup, false);
         return new MyViewHolder(itemView);
     }
-
     @Override
     public void onBindViewHolder(MyViewHolder holder, int position) {
         ForecastSingleDayWeather forecastSingleDayWeather = forecastSingleDayWeathers.get(position);
         holder.forecastImage.setImageResource(returnImageRes(forecastSingleDayWeather.getDescWeather()));
         holder.forecastDay.setText(Html.fromHtml(forecastSingleDayWeather.getDateText()));
         holder.forecastTemp.setText(String.valueOf(forecastSingleDayWeather.getDayTemperature()) + (char) 0x00B0+ " C");
+        holder.dayWeather = forecastSingleDayWeathers.get(position);
     }
 
     private int returnImageRes(String weather) {
