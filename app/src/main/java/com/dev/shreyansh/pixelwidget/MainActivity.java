@@ -3,7 +3,6 @@ package com.dev.shreyansh.pixelwidget;
 import android.Manifest;
 import android.app.ActionBar;
 import android.app.AlertDialog;
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -88,12 +87,6 @@ public class MainActivity extends AppCompatActivity {
     ImageView weatherImage;
     LinearLayout hero;
     RecyclerView recyclerView;
-
-    ProgressDialog pd;
-
-    /* Network state */
-    boolean isWiFi;
-    boolean isConnected;
 
     /* Google API Client */
     private GoogleApiClient googleApiClient;
@@ -481,25 +474,33 @@ public class MainActivity extends AppCompatActivity {
 
         if(isStillDay) {
             switch (weather.toLowerCase().trim()) {
-                case "clear sky": return R.drawable.danieledesantis_weather_icons_sunny;
+                case "clear sky":
+                case "sky is clear": return R.drawable.danieledesantis_weather_icons_sunny;
                 case "few clouds":return R.drawable.danieledesantis_weather_icons_cloudy;
                 case "scattered clouds": return R.drawable.danieledesantis_weather_icons_cloudy_two;
                 case "broken clouds" : return R.drawable.danieledesantis_weather_icons_cloudy_three;
-                case "shower rain": return R.drawable.danieledesantis_weather_icons_rainy_two;
-                case "rain": return R.drawable.danieledesantis_weather_icons_rainy;
-                case "thunderstorm": return R.drawable.danieledesantis_weather_icons_stormy;
+                case "shower rain":
+                case "moderate rain": return R.drawable.danieledesantis_weather_icons_rainy_two;
+                case "rain":
+                case "light rain": return R.drawable.danieledesantis_weather_icons_rainy;
+                case "thunderstorm":
+                case "heavy intensity rain":return R.drawable.danieledesantis_weather_icons_stormy;
                 case "snow": return R.drawable.danieledesantis_weather_icons_snowy;
                 default: return R.drawable.danieledesantis_weather_icons_cloudy;
             }
         } else {
             switch (weather.toLowerCase().trim()) {
-                case "clear sky": return R.drawable.danieledesantis_weather_icons_night_clear;
+                case "clear sky":
+                case "sky is clear": return R.drawable.danieledesantis_weather_icons_night_clear;
                 case "few clouds":return R.drawable.danieledesantis_weather_icons_night_cloudy;
                 case "scattered clouds": return R.drawable.danieledesantis_weather_icons_night_cloudy_two;
                 case "broken clouds" : return R.drawable.danieledesantis_weather_icons_night_cloudy_three;
-                case "shower rain": return R.drawable.danieledesantis_weather_icons_night_rainy_two;
-                case "rain": return R.drawable.danieledesantis_weather_icons_night_rainy;
-                case "thunderstorm": return R.drawable.danieledesantis_weather_icons_night_stormy;
+                case "shower rain":
+                case "moderate rain": return R.drawable.danieledesantis_weather_icons_night_rainy_two;
+                case "rain":
+                case "light rain": return R.drawable.danieledesantis_weather_icons_night_rainy;
+                case "thunderstorm":
+                case "heavy intensity rain": return R.drawable.danieledesantis_weather_icons_night_stormy;
                 case "snow": return R.drawable.danieledesantis_weather_icons_night_snowy;
                 default: return R.drawable.danieledesantis_weather_icons_night_cloudy;
             }
