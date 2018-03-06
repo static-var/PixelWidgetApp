@@ -2,28 +2,30 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="@dimen/widget_margin">
+    android:layout_weight="2">
 
     <TextView
         android:id="@+id/event_display_widget"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
         android:gravity="center"
         android:fontFamily="fonts/Product Sans Regular.ttf"
         android:textColor="@android:color/white"
         android:maxLines="1"
-        android:textSize="30sp"
+        android:textSize="36sp"
         android:shadowDx="0"
         android:shadowDy="0"
         android:shadowRadius="6"
+        android:layout_weight="1.2"
         android:shadowColor="@android:color/black" />
 
 
     <LinearLayout
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
         android:layout_gravity="center"
         android:orientation="horizontal"
+        android:layout_weight="0.8"
         android:gravity="center">
 
         <TextView
@@ -43,11 +45,12 @@
 
         <ImageView
             android:id="@+id/weather_icon"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:contentDescription="Image"
-            android:paddingTop="16dp"
-            android:paddingBottom="16dp"/>
+            android:adjustViewBounds="true"
+            android:scaleType="fitCenter"
+            android:padding="8dp"/>
 
         <TextView
             android:id="@+id/weather_temp"
