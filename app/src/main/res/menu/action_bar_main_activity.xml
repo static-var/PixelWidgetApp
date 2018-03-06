@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto" >
+    <item
+        android:id="@+id/google_sign_in"
+        android:title="@string/google_sign_in" />
+    <item
+        android:id="@+id/exit"
+        android:title="@string/exit" />
+    <item
+        android:id="@+id/refresh"
+        android:title="@string/refresh"
+        app:actionProviderClass="@android:style/Widget.Holo.ActionButton.Overflow"
+        android:icon="@drawable/ic_refresh_white_48dp"
+        android:iconTint="@android:color/white"
+        app:showAsAction="always" />
+</menu>
