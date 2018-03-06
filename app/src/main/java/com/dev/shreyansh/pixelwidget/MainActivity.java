@@ -2,6 +2,7 @@ package com.dev.shreyansh.pixelwidget;
 
 import android.Manifest;
 import android.app.ActionBar;
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -440,7 +441,7 @@ public class MainActivity extends AppCompatActivity {
                             if(forecastData != null) {
                                 forecastSingleDayWeathers = dummy.processData(forecastData);
                                 Log.i(TAG, String.valueOf(forecastSingleDayWeathers.size()));
-                                forecastAdapter = new ForecastAdapter(forecastSingleDayWeathers);
+                                forecastAdapter = new ForecastAdapter(forecastSingleDayWeathers, (Activity) context);
                                 RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(context);
                                 recyclerView.setLayoutManager(layoutManager);
                                 recyclerView.setHasFixedSize(true);

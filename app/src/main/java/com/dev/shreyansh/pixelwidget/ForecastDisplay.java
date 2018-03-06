@@ -110,4 +110,10 @@ public class ForecastDisplay extends AppCompatActivity {
             default: return R.drawable.danieledesantis_weather_icons_cloudy;
         }
     }
+
+    @Override
+    public void finish() {
+        super.finish();
+        overridePendingTransition(R.anim.enter1, R.anim.exit1);
+    }
 }

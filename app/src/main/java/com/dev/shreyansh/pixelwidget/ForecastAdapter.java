@@ -1,5 +1,6 @@
 package com.dev.shreyansh.pixelwidget;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.widget.RecyclerView;
@@ -19,12 +20,13 @@ import java.util.List;
 
 public class ForecastAdapter extends RecyclerView.Adapter<ForecastAdapter.MyViewHolder>{
     private List<ForecastSingleDayWeather> forecastSingleDayWeathers;
-
+    private Activity activity;
     public class MyViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
         public ImageView forecastImage;
         public TextView forecastDay;
         public TextView forecastTemp;
         public ForecastSingleDayWeather dayWeather;
+        public Activity thisActivity;
 
         public MyViewHolder(View view) {
             super(view);
@@ -54,11 +56,13 @@ public class ForecastAdapter extends RecyclerView.Adapter<ForecastAdapter.MyView
             bundle.putDouble("wind", dayWeather.getWindspeed());
             showForecast.putExtras(bundle);
             v.getContext().startActivity(showForecast);
+            thisActivity.overridePendingTransition(R.anim.enter, R.anim.exit);
         }
     }
 
-    public ForecastAdapter(List<ForecastSingleDayWeather> allWeather){
+    public ForecastAdapter(List<ForecastSingleDayWeather> allWeather, Activity activity){
         forecastSingleDayWeathers = allWeather;
+        this.activity = activity;
     }
 
     @Override
@@ -78,6 +82,7 @@ public class ForecastAdapter extends RecyclerView.Adapter<ForecastAdapter.MyView
         holder.forecastDay.setText(Html.fromHtml(forecastSingleDayWeather.getDateText()));
         holder.forecastTemp.setText(String.valueOf(forecastSingleDayWeather.getDayTemperature()) + (char) 0x00B0+ " C");
         holder.dayWeather = forecastSingleDayWeathers.get(position);
+        holder.thisActivity = activity;
     }
 
     private int returnImageRes(String weather) {
