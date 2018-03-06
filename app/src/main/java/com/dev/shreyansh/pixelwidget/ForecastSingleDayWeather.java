@@ -137,7 +137,7 @@ public class ForecastSingleDayWeather {
         Long epochTime = Long.parseLong(dateText)*1000;
 
         /* Format to get Day */
-        simpleDateFormat = new SimpleDateFormat("EEEE");
+        simpleDateFormat = new SimpleDateFormat("EEE");
         String day = simpleDateFormat.format(new Date(epochTime));
 
         /* Format to get Date alone */
