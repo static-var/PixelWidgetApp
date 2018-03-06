@@ -33,6 +33,7 @@
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_weight="2"
+        android:padding="8dp"
         android:paddingEnd="8dp"
         android:contentDescription="Weather Image" />
 
