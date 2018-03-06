@@ -67,6 +67,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center"
+                android:textColor="@android:color/white"
                 android:layout_marginBottom="8dp"
                 android:textSize="48sp" />
 
@@ -94,6 +95,7 @@
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:gravity="center"
+                    android:textColor="@android:color/white"
                     android:text="lol"
                     android:textSize="52dp"
                     android:layout_weight="1" />
@@ -106,6 +108,7 @@
                 android:layout_height="wrap_content"
                 android:text="Today's date"
                 android:gravity="center"
+                android:textColor="@android:color/white"
                 android:layout_marginBottom="8dp"
                 android:textSize="30dp"/>
 
