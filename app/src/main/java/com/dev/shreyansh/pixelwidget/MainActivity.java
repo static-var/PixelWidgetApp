@@ -17,6 +17,7 @@ import android.os.Handler;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.AppBarLayout;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -26,6 +27,9 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Html;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
@@ -122,7 +126,7 @@ public class MainActivity extends AppCompatActivity {
             RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(ActionBar.LayoutParams.WRAP_CONTENT, ActionBar.LayoutParams.WRAP_CONTENT);
             tv.setLayoutParams(lp);
             tv.setText(getString(R.string.app_name));
-            tv.setTextSize(24);
+            tv.setTextSize(28);
             tv.setTextColor(Color.parseColor("#FFFFFF"));
 
             /* Set Custom Font */
@@ -133,10 +137,25 @@ public class MainActivity extends AppCompatActivity {
 
             /* Remove shadow between Action bar and other layouts */
             this.getSupportActionBar().setElevation(0);
+
+            /*
+             * This will add shadow at the bottom of the AppBarLayout
+             * Normal appBarLayout.setElevation() is not working
+             * so sue the listener, this can be resource intensive
+             */
+            AppBarLayout appBarLayout = findViewById(R.id.appBar);
+            appBarLayout.addOnOffsetChangedListener(new AppBarLayout.OnOffsetChangedListener() {
+                @Override
+                public void onOffsetChanged(AppBarLayout appBarLayout, int verticalOffset) {
+                    appBarLayout.setElevation(20);
+                }
+            });
         } catch (NullPointerException e) {
-            /* If there's a null pointer exception generated,
+            /*
+             * If there's a null pointer exception generated,
              * then just use setTitle and
-             * screw Typeface in that case */
+             * screw TypeFace in that case
+             */
             Log.e(TAG,e.toString());
             this.getSupportActionBar().setTitle("Pixel Weather");
         }
@@ -535,6 +554,29 @@ public class MainActivity extends AppCompatActivity {
                     .getLaunchIntentForPackage( getBaseContext().getPackageName() );
             i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             startActivity(i);
+        }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.action_bar_main_activity, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle item selection
+        switch (item.getItemId()) {
+            case R.id.google_sign_in:
+                return true;
+            case R.id.exit:
+                finish();
+                return true;
+            case R.id.refresh:
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
         }
     }
 }
