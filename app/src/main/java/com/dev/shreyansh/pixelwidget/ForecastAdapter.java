@@ -1,11 +1,9 @@
 package com.dev.shreyansh.pixelwidget;
 
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.widget.RecyclerView;
 import android.text.Html;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -70,7 +68,6 @@ public class ForecastAdapter extends RecyclerView.Adapter<ForecastAdapter.MyView
     }
 
     private int returnImageRes(String weather) {
-        Log.i("-->",weather);
         switch (weather.toLowerCase().trim()) {
             case "clear sky":
             case "sky is clear":
@@ -88,4 +85,5 @@ public class ForecastAdapter extends RecyclerView.Adapter<ForecastAdapter.MyView
             default: return R.drawable.danieledesantis_weather_icons_cloudy;
         }
     }
+
 }
