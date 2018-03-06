@@ -18,23 +18,24 @@
     <android.support.design.widget.CollapsingToolbarLayout
         android:id="@+id/collapsingToolbar"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         app:layout_scrollFlags="scroll|exitUntilCollapsed"
         android:fitsSystemWindows="true"
         app:contentScrim="?attr/colorPrimary"
         app:expandedTitleMarginStart="48dp"
         app:expandedTitleMarginEnd="64dp" >
+        >
 
 
         <LinearLayout
             android:id="@+id/hero_layout"
             android:padding="16dp"
+            android:layout_marginTop="-44dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
+            android:layout_marginBottom="12dp"
             android:background="@color/primary"
-            android:translationZ="10dp"
-            android:elevation="10dp"
             app:layout_collapseMode="parallax">
 
             <TextView
@@ -82,8 +83,9 @@
                 <ImageView
                     android:id="@+id/current_weather_image"
                     android:layout_width="0dp"
-                    android:layout_height="match_parent"
+                    android:layout_height="wrap_content"
                     android:layout_weight="1"
+                    android:layout_gravity="center_vertical"
                     android:src="@drawable/danieledesantis_weather_icons_night_clear"
                     android:contentDescription="Weather Image"/>
 
