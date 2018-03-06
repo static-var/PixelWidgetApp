@@ -11,7 +11,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.util.List;
 
@@ -82,9 +81,9 @@ public class ForecastAdapter extends RecyclerView.Adapter<ForecastAdapter.MyView
             case "shower rain":
             case "moderate rain": return R.drawable.danieledesantis_weather_icons_rainy_two;
             case "rain":
-            case "light rain":
-                return R.drawable.danieledesantis_weather_icons_rainy;
-            case "thunderstorm": return R.drawable.danieledesantis_weather_icons_stormy;
+            case "light rain": return R.drawable.danieledesantis_weather_icons_rainy;
+            case "thunderstorm":
+            case "heavy intensity rain": return R.drawable.danieledesantis_weather_icons_stormy;
             case "snow": return R.drawable.danieledesantis_weather_icons_snowy;
             default: return R.drawable.danieledesantis_weather_icons_cloudy;
         }
