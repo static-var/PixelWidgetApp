@@ -2,6 +2,8 @@ package com.dev.shreyansh.pixelwidget;
 
 import android.Manifest;
 import android.app.AlertDialog;
+import android.app.WallpaperColors;
+import android.app.WallpaperManager;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
 import android.content.ComponentName;
@@ -9,10 +11,12 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
@@ -35,12 +39,14 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnSuccessListener;
 
+import junit.runner.Version;
+
 import java.text.SimpleDateFormat;
 
 /**
  * Implementation of App Widget functionality.
  */
-public class PixelLikeWidget extends AppWidgetProvider {
+public class PixelLikeWidget extends AppWidgetProvider{
 
     public static final String TAG = "WidgetPixelWidget";
     private static final int UPDATE_DURATION = 10000;
@@ -59,6 +65,8 @@ public class PixelLikeWidget extends AppWidgetProvider {
     private LocationManager locationManager;
     public Location location;
     private FusedLocationProviderClient fusedLocationProviderClient;
+
+    WallpaperManager wallpaperManager;
 
     Context contextMain;
 
@@ -112,7 +120,6 @@ public class PixelLikeWidget extends AppWidgetProvider {
             if(location != null) {
                 weatherData = new FetchAsync().execute(location.getLatitude(), location.getLongitude()).get();
                 weather = new Weather(weatherData);
-                Log.i(TAG, weather.getCityName());
             } else {
                 fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(context);
                 if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
@@ -134,9 +141,25 @@ public class PixelLikeWidget extends AppWidgetProvider {
     }
 
     @Override
-    public void onEnabled(Context context) {
+    public void onEnabled(final Context context) {
         // Enter relevant functionality for when the first widget is created
-        contextMain = context;
+
+        if(Build.VERSION.SDK_INT >= 27) {
+            /*
+            * For the first time when the widget is loaded it won't check for the wallpaper's color
+            */
+            wallpaperAwareStuff(context);
+
+            /*
+            * Now set the listener for wallpaper's color change
+            */
+            wallpaperManager.addOnColorsChangedListener(new WallpaperManager.OnColorsChangedListener() {
+                @Override
+                public void onColorsChanged(WallpaperColors colors, int which) {
+                    wallpaperAwareStuff(context);
+                }
+            }, null);
+        }
 
     }
 
@@ -294,13 +317,10 @@ public class PixelLikeWidget extends AppWidgetProvider {
                     locationManager =  (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
                     LocationServices.FusedLocationApi.requestLocationUpdates(googleApiClient, locationRequest, locationListener);
                     location = LocationServices.FusedLocationApi.getLastLocation(googleApiClient);
-                    // Write data
-
 
                     try {
                         weatherData = new FetchAsync().execute(location.getLatitude(), location.getLongitude()).get();
                         weather = new Weather(weatherData);
-                        Log.i(TAG, weather.getCityName()+ String.valueOf(weather.getCurrentTemperature()));
                         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.pixel_like_widget);
                         SimpleDateFormat date = new SimpleDateFormat("EEEE");
                         String day = date.format(System.currentTimeMillis())+", ";
@@ -318,8 +338,6 @@ public class PixelLikeWidget extends AppWidgetProvider {
                     } catch (Exception e) {
                         Log.e(TAG, e.toString());
                     }
-
-                    Log.i(TAG, "Got location");
                 }
             }
 
@@ -339,5 +357,34 @@ public class PixelLikeWidget extends AppWidgetProvider {
             }
         };
     }
+
+    public void wallpaperAwareStuff(final Context context) {
+        if(Build.VERSION.SDK_INT == 27) {
+            wallpaperManager = WallpaperManager.getInstance(context);
+            wallpaperManager = WallpaperManager.getInstance(context);
+            WallpaperColors wallpaperColors = wallpaperManager.getWallpaperColors(WallpaperManager.FLAG_SYSTEM);
+            Color color1 = wallpaperColors.getPrimaryColor();
+            Float c0 = color1.getComponent(0);
+            Float c1 = color1.getComponent(1);
+            Float c2 = color1.getComponent(2);
+            double lum = 0.2126*c0 + 0.7152*c1 + 0.0722*c2;
+            boolean dark = lum < 128;
+            Log.i(TAG, String.valueOf(lum));
+            RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.pixel_like_widget);
+            if(!dark) {
+                views.setTextColor(R.id.date_or_event_duration, context.getResources().getColor(android.R.color.black));
+                views.setTextColor(R.id.weather_temp, context.getResources().getColor(android.R.color.black));
+                views.setTextColor(R.id.event_display_widget, context.getResources().getColor(android.R.color.black));
+            } else {
+                views.setTextColor(R.id.date_or_event_duration, context.getResources().getColor(android.R.color.white));
+                views.setTextColor(R.id.weather_temp, context.getResources().getColor(android.R.color.white));
+                views.setTextColor(R.id.event_display_widget, context.getResources().getColor(android.R.color.white));
+            }
+            Log.i(TAG, String.valueOf(wallpaperColors.getPrimaryColor()));
+            ComponentName thisWidget = new ComponentName(context,PixelLikeWidget.class);
+            AppWidgetManager.getInstance(context).updateAppWidget(thisWidget, views);
+        }
+    }
+
 }
 
