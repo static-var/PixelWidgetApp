@@ -36,4 +36,15 @@
     <!-- Refresh App String -->
     <string name="refresh">Refresh</string>
 
+    <!-- Strings for displaying forecast -->
+    <string name="forecast_min_temp">Min Temperature</string>
+    <string name="forecast_max_temp">Max Temperature</string>
+    <string name="forecast_day_temp">Temperature in day</string>
+    <string name="forecast_night_temp">Temperature in night</string>
+    <string name="forecast_morning_temp">Temperature in morning</string>
+    <string name="forecast_evening_temp">Temperature in evening</string>
+    <string name="forecast_humidity">Humidity</string>
+    <string name="forecast_cloudiness">Cloudiness</string>
+    <string name="forecast_wind">Wind Speed</string>
+
 </resources>
