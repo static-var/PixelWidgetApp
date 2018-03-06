@@ -184,7 +184,7 @@ public class MainActivity extends AppCompatActivity {
                                     @Override
                                     public void onClick(DialogInterface dialog, int which) {
                                         Intent settings = new Intent(Settings.ACTION_WIRELESS_SETTINGS);
-                                        startActivity(settings);
+                                        startActivityForResult(settings, 2);
                                     }
                                 })
                                 .setNegativeButton("EXIT", new DialogInterface.OnClickListener() {
@@ -261,7 +261,7 @@ public class MainActivity extends AppCompatActivity {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             Intent settings = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-                            startActivity(settings);
+                            startActivityForResult(settings, 2);
                         }
                     })
                     .setNegativeButton("EXIT", new DialogInterface.OnClickListener() {
@@ -280,7 +280,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent settings = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-                startActivity(settings);
+                startActivityForResult(settings, 2);
             }
         });
     }
@@ -301,7 +301,7 @@ public class MainActivity extends AppCompatActivity {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             Intent settings = new Intent(Settings.ACTION_WIRELESS_SETTINGS);
-                            startActivity(settings);
+                            startActivityForResult(settings, 2);
                         }
                     })
                     .setNegativeButton("EXIT", new DialogInterface.OnClickListener() {
@@ -524,6 +524,16 @@ public class MainActivity extends AppCompatActivity {
         catch (Exception e) {
             Log.e(TAG, e.toString());
             return false;
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if(requestCode == 2) {
+            Intent i = getBaseContext().getPackageManager()
+                    .getLaunchIntentForPackage( getBaseContext().getPackageName() );
+            i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            startActivity(i);
         }
     }
 }

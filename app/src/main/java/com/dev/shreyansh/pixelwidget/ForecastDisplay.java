@@ -18,4 +18,10 @@ public class ForecastDisplay extends AppCompatActivity {
          * TODO : Set Data in TextViews and display all the data from ForecastSingleDayWeather class
          */
     }
+
+    @Override
+    public void onDestroy(){
+        super.onDestroy();
+        setResult(1);
+    }
 }
