@@ -7,10 +7,16 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.HttpConnectionParams;
+import org.apache.http.params.HttpParams;
 import org.apache.http.util.EntityUtils;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
+import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,15 +50,24 @@ public class FetchAndProcessForecastWeather {
 
     /* Fetch data in AsyncTask */
     public JSONObject fetchData() {
-        client = new DefaultHttpClient();
+        HttpParams httpParams = new BasicHttpParams();
+        HttpConnectionParams.setConnectionTimeout(httpParams, 3000);
+        HttpConnectionParams.setSoTimeout(httpParams, 5000);
+        client = new DefaultHttpClient(httpParams);
         httpGet = new HttpGet(query);
 
         try {
             httpResponse = client.execute(httpGet);
             HttpEntity entity = httpResponse.getEntity();
             return new JSONObject(EntityUtils.toString(entity));
-        } catch (Exception e) {
-            Log.e(TAG, e.toString());
+        } catch (SocketTimeoutException e) {
+            Log.i(TAG, e.toString());
+            return null;
+        } catch (IOException e) {
+            Log.i(TAG, e.toString());
+            return null;
+        } catch (JSONException e) {
+            Log.i(TAG, e.toString());
             return null;
         }
     }

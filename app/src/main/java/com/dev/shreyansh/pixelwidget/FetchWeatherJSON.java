@@ -8,8 +8,16 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.HttpConnectionParams;
+import org.apache.http.params.HttpParams;
 import org.apache.http.util.EntityUtils;
+import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.io.IOException;
+import java.net.SocketException;
+import java.net.SocketTimeoutException;
 
 /**
  * Created by shreyansh on 2/14/18.
@@ -44,15 +52,24 @@ public class FetchWeatherJSON {
 
 
     public JSONObject fetchData() {
-        client = new DefaultHttpClient();
         httpGet = new HttpGet(weatherURL);
+        HttpParams httpParams = new BasicHttpParams();
+        HttpConnectionParams.setConnectionTimeout(httpParams, 3000);
+        HttpConnectionParams.setSoTimeout(httpParams, 5000);
+        client = new DefaultHttpClient(httpParams);
 
         try {
             httpResponse = client.execute(httpGet);
             HttpEntity entity = httpResponse.getEntity();
             data = new JSONObject(EntityUtils.toString(entity));
             return data;
-        } catch (Exception e) {
+        } catch (SocketTimeoutException e) {
+            Log.i(TAG, e.toString());
+            return null;
+        } catch (IOException e) {
+            Log.i(TAG, e.toString());
+            return null;
+        } catch (JSONException e) {
             Log.i(TAG, e.toString());
             return null;
         }
