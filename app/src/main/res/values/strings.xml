@@ -27,4 +27,13 @@
     <!-- Location Disabled by User String -->
     <string name="location_disabled">Locations are Disabled. Click here to go to Location Settings.</string>
 
+    <!-- Google Sign-in String -->
+    <string name="google_sign_in">Google Account</string>
+
+    <!-- Exit App String -->
+    <string name="exit">Exit</string>
+
+    <!-- Refresh App String -->
+    <string name="refresh">Refresh</string>
+
 </resources>
