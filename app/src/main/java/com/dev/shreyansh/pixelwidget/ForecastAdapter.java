@@ -38,7 +38,19 @@ public class ForecastAdapter extends RecyclerView.Adapter<ForecastAdapter.MyView
 
             Intent showForecast = new Intent(v.getContext(),ForecastDisplay.class);
             Bundle bundle = new Bundle();
-            // TODO : Put entire data of ForecastSingleDayWeather in bundle one by one.
+            bundle.putString("cityName", dayWeather.getCityName());
+            bundle.putString("mainWeather", dayWeather.getMainWeather());
+            bundle.putString("descWeather", dayWeather.getDescWeather());
+            bundle.putString("dateText", dayWeather.getDateText());
+            bundle.putDouble("dayTemp", dayWeather.getDayTemperature());
+            bundle.putDouble("nightTemp", dayWeather.getNightTemperature());
+            bundle.putDouble("eveningTemp", dayWeather.getEveningTemperature());
+            bundle.putDouble("morningTemp", dayWeather.getMorningTemperature());
+            bundle.putDouble("maxTemp", dayWeather.getMaxTemperature());
+            bundle.putDouble("minTemp", dayWeather.getMinTemperature());
+            bundle.putDouble("humidity", dayWeather.getHumidity());
+            bundle.putDouble("cloudiness", dayWeather.getCloudiness());
+            bundle.putDouble("wind", dayWeather.getWindspeed());
             showForecast.putExtras(bundle);
             v.getContext().startActivity(showForecast);
         }
@@ -70,9 +82,8 @@ public class ForecastAdapter extends RecyclerView.Adapter<ForecastAdapter.MyView
     private int returnImageRes(String weather) {
         switch (weather.toLowerCase().trim()) {
             case "clear sky":
-            case "sky is clear":
-                return R.drawable.danieledesantis_weather_icons_sunny;
-            case "few clouds":return R.drawable.danieledesantis_weather_icons_cloudy;
+            case "sky is clear": return R.drawable.danieledesantis_weather_icons_sunny;
+            case "few clouds": return R.drawable.danieledesantis_weather_icons_cloudy;
             case "scattered clouds": return R.drawable.danieledesantis_weather_icons_cloudy_two;
             case "broken clouds" : return R.drawable.danieledesantis_weather_icons_cloudy_three;
             case "shower rain":
