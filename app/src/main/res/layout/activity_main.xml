@@ -86,8 +86,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:layout_gravity="center_vertical"
-                    android:src="@drawable/danieledesantis_weather_icons_night_clear"
+                    android:layout_gravity="center_vertical|center"
                     android:contentDescription="Weather Image"/>
 
                 <TextView
