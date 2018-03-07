@@ -68,19 +68,21 @@ public class PixelLikeWidget extends AppWidgetProvider{
 
     WallpaperManager wallpaperManager;
 
-    Context contextMain;
 
     void updateAppWidget(final Context context, AppWidgetManager appWidgetManager,
                                 int appWidgetId) {
 
-        CharSequence widgetText = context.getString(R.string.appwidget_text);
         // Construct the RemoteViews object
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.pixel_like_widget);
 
-        views.setTextViewText(R.id.event_display_widget, "Nothing for now");
-        views.setImageViewResource(R.id.weather_icon, R.drawable.danieledesantis_weather_icons_rainy);
-
         try {
+            if(checkNetwork(context)) {
+                if (checkPlayServices(context)) {
+                    initialiseManagerListener(context);
+                    buildGoogleApiClient(context);
+                    googleApiClient.connect();
+                }
+            }
 
             if(location != null) {
                 weatherData = new FetchAsync().execute(location.getLatitude(), location.getLongitude()).get();
@@ -109,32 +111,7 @@ public class PixelLikeWidget extends AppWidgetProvider{
     @Override
     public void onUpdate(final Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
         // There may be multiple widgets active, so update all of them
-        try {
-            if(checkNetwork(context)) {
-                if (checkPlayServices(context)){
-                    initialiseManagerListener(context);
-                    buildGoogleApiClient(context);
-                    googleApiClient.connect();
-                }
-            }
-            if(location != null) {
-                weatherData = new FetchAsync().execute(location.getLatitude(), location.getLongitude()).get();
-                weather = new Weather(weatherData);
-            } else {
-                fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(context);
-                if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
-                        != PackageManager.PERMISSION_GRANTED) {
-                    fusedLocationProviderClient.getLastLocation().addOnSuccessListener(new OnSuccessListener<Location>() {
-                        @Override
-                        public void onSuccess(Location location) {
-                            setLocation(location,context);
-                        }
-                    });
-                }
-            }
-        } catch (Exception e) {
-            Log.e(TAG, e.toString());
-        }
+
         for (int appWidgetId : appWidgetIds) {
             updateAppWidget(context, appWidgetManager, appWidgetId);
         }
@@ -171,10 +148,6 @@ public class PixelLikeWidget extends AppWidgetProvider{
     @Override
     public void onReceive(Context context, Intent intent) {
         super.onReceive(context,intent);
-
-    }
-
-    public void init(Context context) {
 
     }
 
@@ -335,6 +308,7 @@ public class PixelLikeWidget extends AppWidgetProvider{
 
                         ComponentName thisWidget = new ComponentName(context,PixelLikeWidget.class);
                         AppWidgetManager.getInstance(context).updateAppWidget(thisWidget, views);
+                        googleApiClient.disconnect();
                     } catch (Exception e) {
                         Log.e(TAG, e.toString());
                     }
