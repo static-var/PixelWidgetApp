@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -15,6 +16,7 @@ import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Handler;
+import android.os.Looper;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -92,6 +94,7 @@ public class MainActivity extends AppCompatActivity {
     ImageView weatherImage;
     LinearLayout hero;
     RecyclerView recyclerView;
+    ProgressDialog progressDialog;
 
     /* Google API Client */
     private GoogleApiClient googleApiClient;
@@ -120,6 +123,8 @@ public class MainActivity extends AppCompatActivity {
 
         /* Set Day and Date */
         setDayAndDate();
+
+        progressDialog = new ProgressDialog(this);
 
         /* Workaround to change the font of ActionBar */
         try {
@@ -176,39 +181,50 @@ public class MainActivity extends AppCompatActivity {
             ActivityCompat.requestPermissions(this, new String[] { Manifest.permission.ACCESS_COARSE_LOCATION },
                     PERMISSION_ACCESS_COARSE_LOCATION);
         } else {
-                    if(checkNetwork()) {
-                        if (checkPlayServices()){
-                            final AlertDialog builder = new AlertDialog.Builder(context, R.style.AlertDialogStyle)
-                                    .setCancelable(false)
-                                    .setTitle("Locations are disabled")
-                                    .setMessage("Enable location to use the app.")
-                                    .show();
-                            initialiseManagerListener();
-                            buildGoogleApiClient();
-                            googleApiClient.connect();
-                            builder.dismiss();
-                        }
-                    } else {
-                        final AlertDialog builder = new AlertDialog.Builder(this, R.style.AlertDialogStyle)
-                                .setCancelable(false)
-                                .setTitle("No Internet detected.")
-                                .setMessage("Enable internet to use the app.")
-                                .setPositiveButton("GO TO SETTINGS", new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        Intent settings = new Intent(Settings.ACTION_WIRELESS_SETTINGS);
-                                        startActivityForResult(settings, 2);
-                                    }
-                                })
-                                .setNegativeButton("EXIT", new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        finish();
-                                    }
-                                }).show();
-                        builder.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(getResources().getColor(R.color.colorAccent));
-                        builder.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(getResources().getColor(R.color.colorAccent));
+            try {
+                if (checkNetwork()) {
+                    if (checkPlayServices()) {
+                        progressDialog.setIndeterminate(false);
+                        progressDialog.setTitle("Loading...");
+                        progressDialog.setMessage("Featching location and weather details...");
+                        progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+                        progressDialog.setCancelable(false);
+                        progressDialog.show();
+                        new Handler().postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                initialiseManagerListener();
+                                buildGoogleApiClient();
+                                googleApiClient.connect();
+
+                                progressDialog.dismiss();
+                            }
+                        },1000);
                     }
+                } else {
+                    final AlertDialog builder = new AlertDialog.Builder(this, R.style.AlertDialogStyle)
+                            .setCancelable(false)
+                            .setTitle("No Internet detected.")
+                            .setMessage("Enable internet to use the app.")
+                            .setPositiveButton("GO TO SETTINGS", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    Intent settings = new Intent(Settings.ACTION_WIRELESS_SETTINGS);
+                                    startActivityForResult(settings, 2);
+                                }
+                            })
+                            .setNegativeButton("EXIT", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    finish();
+                                }
+                            }).show();
+                    builder.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(getResources().getColor(R.color.colorAccent));
+                    builder.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(getResources().getColor(R.color.colorAccent));
+                }
+            } catch (Exception r) {
+                Log.e(TAG, "Error",r);
+            }
 
         }
     }
@@ -237,7 +253,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /* Initialize listener, request and manager */
-    public void initialiseManagerListener() {
+    public synchronized void initialiseManagerListener() {
         locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
         if(locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER))
             locationRequest = LocationRequest.create()
@@ -426,52 +442,60 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /* Write Weather Data to UI */
-    public synchronized void writeDataToUI(){
+    public void writeDataToUI(){
         if (location != null) {
             try {
                 /* Get weather data  */
-                new Handler().postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            weatherData = new FetchAsync().execute(location.getLatitude(), location.getLongitude()).get();
-                            weather = new Weather(weatherData);
-                            forecastData = new FetchAsyncForecast().execute(location.getLatitude(), location.getLongitude()).get();
-                            FetchAndProcessForecastWeather dummy = new FetchAndProcessForecastWeather();
-                            if(forecastData != null) {
-                                forecastSingleDayWeathers = dummy.processData(forecastData);
-                                Log.i(TAG, String.valueOf(forecastSingleDayWeathers.size()));
-                                forecastAdapter = new ForecastAdapter(forecastSingleDayWeathers, (Activity) context);
-                                RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(context);
-                                recyclerView.setLayoutManager(layoutManager);
-                                recyclerView.setHasFixedSize(true);
-                                recyclerView.setItemAnimator(new DefaultItemAnimator());
-                                recyclerView.addItemDecoration(new DividerItemDecoration(context, null));
-                                recyclerView.setAdapter(forecastAdapter);
+                progressDialog.setTitle("Loading Data");
+                progressDialog.setMessage("Fetching location and weather details.");
+                weatherData = new FetchAsync().execute(location.getLatitude(), location.getLongitude()).get();
+                weather = new Weather(weatherData);
+                forecastData = new FetchAsyncForecast().execute(location.getLatitude(), location.getLongitude()).get();
+                FetchAndProcessForecastWeather dummy = new FetchAndProcessForecastWeather();
+                forecastSingleDayWeathers = dummy.processData(forecastData);
+                if (forecastData != null || weatherData != null || forecastSingleDayWeathers.size()!=0 ) {
 
-                                /* Set Data in UI */
-                                currentBigTemp.setText(String.valueOf(weather.getCurrentTemperature()) + degree);
-                                currentCity.setText(Html.fromHtml(weather.getCityName() + ", <b>" + weather.getCountryCode() + "</b>"));
-                                maxTemp.setText(String.valueOf(weather.getMaxTemperature()) + degree);
-                                minTemp.setText(String.valueOf(weather.getMinTemperature()) + degree);
-                                weatherDesc.setText(Html.fromHtml(" <b>"+weather.getMain()+"</b> - "+ StringUtils.capitalize(weather.getDescription())));
-                                humidity.setText(String.valueOf(weather.getHumidity()) + degree);
-                                wind.setText(String.valueOf(weather.getWindSpeed()) + " m/s");
-                                sunrise.setText(weather.getSunrise());
-                                sunset.setText(weather.getSunset());
-                                weatherImage.setImageResource(returnImageRes(weather.getDescription(), weather.getIsDayTime()));
-                                hero.setVisibility(View.VISIBLE);
-                                recyclerView.setVisibility(View.VISIBLE);
-                                Animation fadeIn = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fade_in);
-                                hero.startAnimation(fadeIn);
-                                recyclerView.startAnimation(fadeIn);
-                            }
-                        } catch (Exception e) {
-                            Log.e(TAG,e.toString());
-                        }
-                    }
-                },0);
+                    Log.i(TAG, String.valueOf(forecastSingleDayWeathers.size()));
+                    forecastAdapter = new ForecastAdapter(forecastSingleDayWeathers, (Activity) context);
+                    RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(context);
+                    recyclerView.setLayoutManager(layoutManager);
+                    recyclerView.setHasFixedSize(true);
+                    recyclerView.setItemAnimator(new DefaultItemAnimator());
+                    recyclerView.addItemDecoration(new DividerItemDecoration(context, null));
+                    recyclerView.setAdapter(forecastAdapter);
 
+                    /* Set Data in UI */
+                    currentBigTemp.setText(String.valueOf(weather.getCurrentTemperature()) + degree);
+                    currentCity.setText(Html.fromHtml(weather.getCityName() + ", <b>" + weather.getCountryCode() + "</b>"));
+                    maxTemp.setText(String.valueOf(weather.getMaxTemperature()) + degree);
+                    minTemp.setText(String.valueOf(weather.getMinTemperature()) + degree);
+                    weatherDesc.setText(Html.fromHtml(" <b>" + weather.getMain() + "</b> - " + StringUtils.capitalize(weather.getDescription())));
+                    humidity.setText(String.valueOf(weather.getHumidity()) + degree);
+                    wind.setText(String.valueOf(weather.getWindSpeed()) + " m/s");
+                    sunrise.setText(weather.getSunrise());
+                    sunset.setText(weather.getSunset());
+                    weatherImage.setImageResource(returnImageRes(weather.getDescription(), weather.getIsDayTime()));
+                    if(hero.getVisibility()!=View.VISIBLE)
+                        hero.setVisibility(View.VISIBLE);
+                    if(recyclerView.getVisibility()!=View.VISIBLE)
+                        recyclerView.setVisibility(View.VISIBLE);
+                    Animation fadeIn = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fade_in);
+                    hero.startAnimation(fadeIn);
+                    recyclerView.startAnimation(fadeIn);
+                } else {
+                    final AlertDialog builder = new AlertDialog.Builder(this, R.style.AlertDialogStyle)
+                            .setCancelable(false)
+                            .setTitle("Network TimeOut")
+                            .setMessage("We are unable to connect to the servers. Please check your internet.")
+                            .setNegativeButton("Exit", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    finish();
+                                }
+                            })
+                            .show();
+                    builder.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(getResources().getColor(R.color.colorAccent));
+                }
             }
             catch (Exception e) {
                 Log.e(TAG, e.toString());
@@ -570,11 +594,38 @@ public class MainActivity extends AppCompatActivity {
         // Handle item selection
         switch (item.getItemId()) {
             case R.id.google_sign_in:
+                final Intent googleActivity = new Intent(this, GoogleAccountsActivity.class);
+                startActivity(googleActivity);
+                overridePendingTransition(R.anim.enter, R.anim.exit);
                 return true;
             case R.id.exit:
                 finish();
                 return true;
             case R.id.refresh:
+                hero.setVisibility(View.INVISIBLE);
+                progressDialog.setTitle("Refreshing");
+                progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+                progressDialog.setMessage("Fetching location and data.");
+                progressDialog.setCancelable(false);
+                progressDialog.setIndeterminate(true);
+                progressDialog.show();
+                new Thread() {
+                    public synchronized void run() {
+                        Looper.prepare();
+                        if(googleApiClient != null && googleApiClient.isConnected()) {
+                            googleApiClient.disconnect();
+                        }
+                        googleApiClient.connect();
+                        try {
+                            Thread.sleep(1000);
+                        } catch (InterruptedException e) {
+                            Log.e(TAG, e.toString());
+                        }
+                        progressDialog.dismiss();
+                        writeDataToUI();
+                    }
+                }.start();
+
                 return true;
             default:
                 return super.onOptionsItemSelected(item);

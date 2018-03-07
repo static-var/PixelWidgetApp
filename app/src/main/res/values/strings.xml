@@ -47,4 +47,7 @@
     <string name="forecast_cloudiness">Cloudiness</string>
     <string name="forecast_wind">Wind Speed</string>
 
+    <!--Google Account Logout-->
+    <string name="google_logout">LogOut</string>
+
 </resources>

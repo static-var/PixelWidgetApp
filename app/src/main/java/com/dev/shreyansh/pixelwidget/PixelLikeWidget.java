@@ -1,7 +1,9 @@
 package com.dev.shreyansh.pixelwidget;
 
 import android.Manifest;
+import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.PendingIntent;
 import android.app.WallpaperColors;
 import android.app.WallpaperManager;
 import android.appwidget.AppWidgetManager;
@@ -112,6 +114,12 @@ public class PixelLikeWidget extends AppWidgetProvider{
     public void onUpdate(final Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
         // There may be multiple widgets active, so update all of them
 
+        RemoteViews remoteViews = new RemoteViews(context.getPackageName(), R.layout.pixel_like_widget);
+        Intent configIntent = new Intent(context, MainActivity.class);
+
+        PendingIntent configPendingIntent = PendingIntent.getActivity(context, 0, configIntent, 0);
+        remoteViews.setOnClickPendingIntent(R.id.event_display_widget, configPendingIntent);
+        appWidgetManager.updateAppWidget(appWidgetIds, remoteViews);
         for (int appWidgetId : appWidgetIds) {
             updateAppWidget(context, appWidgetManager, appWidgetId);
         }

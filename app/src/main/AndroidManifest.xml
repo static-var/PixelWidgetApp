@@ -36,8 +36,10 @@
                 android:resource="@xml/pixel_like_widget_info" />
         </receiver>
 
-        <activity android:name=".ForecastDisplay"
-            android:parentActivityName=".MainActivity"></activity>
+        <activity
+            android:name=".ForecastDisplay"
+            android:parentActivityName=".MainActivity" />
+        <activity android:name=".GoogleAccountsActivity"></activity>
     </application>
 
 </manifest>
