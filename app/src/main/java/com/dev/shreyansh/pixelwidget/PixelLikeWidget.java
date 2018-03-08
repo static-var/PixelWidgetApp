@@ -55,8 +55,6 @@ public class PixelLikeWidget extends AppWidgetProvider{
     private static final int DISPLACEMENT = 10;
     private static final int FASTEST_UPDATE = 1000;
 
-    TextView eventDisplay;
-    TextView eventDurationOrDate;
 
     Weather weather;
     JSONObject weatherData;
@@ -67,8 +65,6 @@ public class PixelLikeWidget extends AppWidgetProvider{
     private LocationManager locationManager;
     public Location location;
     private FusedLocationProviderClient fusedLocationProviderClient;
-
-    WallpaperManager wallpaperManager;
 
 
     void updateAppWidget(final Context context, AppWidgetManager appWidgetManager,
