@@ -78,14 +78,6 @@ public class PixelLikeWidget extends AppWidgetProvider{
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.pixel_like_widget);
 
         try {
-            if(checkNetwork(context)) {
-                if (checkPlayServices(context)) {
-                    initialiseManagerListener(context);
-                    buildGoogleApiClient(context);
-                    googleApiClient.connect();
-                }
-            }
-
             if(location != null) {
                 weatherData = new FetchAsync().execute(location.getLatitude(), location.getLongitude()).get();
                 weather = new Weather(weatherData);
@@ -103,7 +95,7 @@ public class PixelLikeWidget extends AppWidgetProvider{
                 }
             }
         } catch (Exception e) {
-            Log.e(TAG, e.toString());
+            Log.e(TAG, "onUpdate", e);
         }
 
         // Instruct the widget manager to update the widget
@@ -113,7 +105,13 @@ public class PixelLikeWidget extends AppWidgetProvider{
     @Override
     public void onUpdate(final Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
         // There may be multiple widgets active, so update all of them
-
+        if(checkNetwork(context)) {
+            if (checkPlayServices(context)) {
+                initialiseManagerListener(context);
+                buildGoogleApiClient(context);
+                googleApiClient.connect();
+            }
+        }
         RemoteViews remoteViews = new RemoteViews(context.getPackageName(), R.layout.pixel_like_widget);
         Intent configIntent = new Intent(context, MainActivity.class);
 
@@ -128,22 +126,22 @@ public class PixelLikeWidget extends AppWidgetProvider{
     @Override
     public void onEnabled(final Context context) {
         // Enter relevant functionality for when the first widget is created
-
+        Log.i(TAG,"onEnable");
         if(Build.VERSION.SDK_INT >= 27) {
             /*
             * For the first time when the widget is loaded it won't check for the wallpaper's color
             */
-            wallpaperAwareStuff(context);
+//            wallpaperAwareStuff(context);
 
             /*
             * Now set the listener for wallpaper's color change
             */
-            wallpaperManager.addOnColorsChangedListener(new WallpaperManager.OnColorsChangedListener() {
-                @Override
-                public void onColorsChanged(WallpaperColors colors, int which) {
-                    wallpaperAwareStuff(context);
-                }
-            }, null);
+//            wallpaperManager.addOnColorsChangedListener(new WallpaperManager.OnColorsChangedListener() {
+//                @Override
+//                public void onColorsChanged(WallpaperColors colors, int which) {
+////                    wallpaperAwareStuff(context);
+//                }
+//            }, null);
         }
 
     }
@@ -156,7 +154,13 @@ public class PixelLikeWidget extends AppWidgetProvider{
     @Override
     public void onReceive(Context context, Intent intent) {
         super.onReceive(context,intent);
-
+        if(intent.getAction()!=null) {
+            AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
+            ComponentName thisAppWidget = new ComponentName(context.getPackageName(), PixelLikeWidget.class.getName());
+            int[] appWidgetIds = appWidgetManager.getAppWidgetIds(thisAppWidget);
+            onUpdate(context, appWidgetManager, appWidgetIds);
+            Log.i(TAG, "Aaya bc");
+        }
     }
 
     public void initialiseManagerListener(final Context context) {
@@ -197,13 +201,13 @@ public class PixelLikeWidget extends AppWidgetProvider{
 
     /* Update the changed location and UI with it */
     public void setLocation(Location newLocation, Context context) {
-        if(checkNetwork(context) && location != null) {
+        if(checkNetwork(context) && location != null && newLocation != null) {
             if (newLocation.getLongitude() != location.getLongitude() && newLocation.getLatitude() != location.getLatitude()) {
                 location = newLocation;
                 // Write data to UI
             }
         } else {
-
+            googleApiClient.connect();
         }
     }
 
@@ -212,12 +216,6 @@ public class PixelLikeWidget extends AppWidgetProvider{
         try {
             ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
             NetworkInfo netInfo = cm.getActiveNetworkInfo();
-            if (!(netInfo != null && netInfo.isConnected())) {
-                // When no internet
-            }
-            else {
-                // When we have internet
-            }
 
             //should check null because in airplane mode it will be null
             return (netInfo != null && netInfo.isConnected());
@@ -292,34 +290,18 @@ public class PixelLikeWidget extends AppWidgetProvider{
     private GoogleApiClient.ConnectionCallbacks ret(final Context context){
         return new GoogleApiClient.ConnectionCallbacks() {
             @Override
-            public synchronized void onConnected(@Nullable Bundle bundle) {
+            public void onConnected(@Nullable Bundle bundle) {
                 if(ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
                         == PackageManager.PERMISSION_GRANTED && locationManager != null) {
                     locationManager =  (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+                    if(!googleApiClient.isConnected()){
+                        googleApiClient.connect();
+                        return;
+                    }
                     LocationServices.FusedLocationApi.requestLocationUpdates(googleApiClient, locationRequest, locationListener);
                     location = LocationServices.FusedLocationApi.getLastLocation(googleApiClient);
+                    setData(context, location);
 
-                    try {
-                        weatherData = new FetchAsync().execute(location.getLatitude(), location.getLongitude()).get();
-                        weather = new Weather(weatherData);
-                        RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.pixel_like_widget);
-                        SimpleDateFormat date = new SimpleDateFormat("EEEE");
-                        String day = date.format(System.currentTimeMillis())+", ";
-                        date = new SimpleDateFormat("MMM");
-                        day = day + date.format(System.currentTimeMillis())+" ";
-                        date = new SimpleDateFormat("dd");
-                        day = day + date.format(System.currentTimeMillis());
-                        views.setTextViewText(R.id.date_or_event_duration, day + "  |");
-                        views.setTextViewText(R.id.event_display_widget, weather.getCityName());
-                        views.setTextViewText(R.id.weather_temp, String.valueOf(Math.round(weather.getCurrentTemperature()))+(char) 0x00B0+" C");
-                        views.setImageViewResource(R.id.weather_icon, returnImageRes(weather.getDescription(), weather.getIsDayTime()));
-
-                        ComponentName thisWidget = new ComponentName(context,PixelLikeWidget.class);
-                        AppWidgetManager.getInstance(context).updateAppWidget(thisWidget, views);
-                        googleApiClient.disconnect();
-                    } catch (Exception e) {
-                        Log.e(TAG, e.toString());
-                    }
                 }
             }
 
@@ -340,33 +322,33 @@ public class PixelLikeWidget extends AppWidgetProvider{
         };
     }
 
-    public void wallpaperAwareStuff(final Context context) {
-        if(Build.VERSION.SDK_INT == 27) {
-            wallpaperManager = WallpaperManager.getInstance(context);
-            wallpaperManager = WallpaperManager.getInstance(context);
-            WallpaperColors wallpaperColors = wallpaperManager.getWallpaperColors(WallpaperManager.FLAG_SYSTEM);
-            Color color1 = wallpaperColors.getPrimaryColor();
-            Float c0 = color1.getComponent(0);
-            Float c1 = color1.getComponent(1);
-            Float c2 = color1.getComponent(2);
-            double lum = 0.2126*c0 + 0.7152*c1 + 0.0722*c2;
-            boolean dark = lum < 128;
-            Log.i(TAG, String.valueOf(lum));
-            RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.pixel_like_widget);
-            if(!dark) {
-                views.setTextColor(R.id.date_or_event_duration, context.getResources().getColor(android.R.color.black));
-                views.setTextColor(R.id.weather_temp, context.getResources().getColor(android.R.color.black));
-                views.setTextColor(R.id.event_display_widget, context.getResources().getColor(android.R.color.black));
-            } else {
-                views.setTextColor(R.id.date_or_event_duration, context.getResources().getColor(android.R.color.white));
-                views.setTextColor(R.id.weather_temp, context.getResources().getColor(android.R.color.white));
-                views.setTextColor(R.id.event_display_widget, context.getResources().getColor(android.R.color.white));
+    public void setData(Context context, Location location) {
+        if(location != null) {
+            try {
+                Log.i(TAG, "Setting Data on widget");
+                weatherData = new FetchAsync().execute(location.getLatitude(), location.getLongitude()).get();
+                weather = new Weather(weatherData);
+                RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.pixel_like_widget);
+                SimpleDateFormat date = new SimpleDateFormat("EEEE");
+                String day = date.format(System.currentTimeMillis()) + ", ";
+                date = new SimpleDateFormat("MMM");
+                day = day + date.format(System.currentTimeMillis()) + " ";
+                date = new SimpleDateFormat("dd");
+                day = day + date.format(System.currentTimeMillis());
+                views.setTextViewText(R.id.date_or_event_duration, day + "  |");
+                views.setTextViewText(R.id.event_display_widget, weather.getCityName());
+                views.setTextViewText(R.id.weather_temp, String.valueOf(Math.round(weather.getCurrentTemperature())) + (char) 0x00B0 + " C");
+                views.setImageViewResource(R.id.weather_icon, returnImageRes(weather.getDescription(), weather.getIsDayTime()));
+
+                ComponentName thisWidget = new ComponentName(context, PixelLikeWidget.class);
+                AppWidgetManager.getInstance(context).updateAppWidget(thisWidget, views);
+                googleApiClient.disconnect();
+            } catch (Exception e) {
+                Log.e(TAG, e.toString());
             }
-            Log.i(TAG, String.valueOf(wallpaperColors.getPrimaryColor()));
-            ComponentName thisWidget = new ComponentName(context,PixelLikeWidget.class);
-            AppWidgetManager.getInstance(context).updateAppWidget(thisWidget, views);
         }
     }
 
 }
 
+// TODO : Use intent filter to check when the phone restart and when network connects
