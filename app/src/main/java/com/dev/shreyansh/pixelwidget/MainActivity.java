@@ -208,7 +208,7 @@ public class MainActivity extends AppCompatActivity {
                                     progressDialog.dismiss();
                                 } else {
                                     progressDialog.dismiss();
-                                    final AlertDialog builder = new AlertDialog.Builder(this, R.style.AlertDialogStyle)
+                                    final AlertDialog builder = new AlertDialog.Builder(context, R.style.AlertDialogStyle)
                                             .setCancelable(false)
                                             .setTitle("Network TimeOut")
                                             .setMessage("We are unable to connect to the servers. Please check your internet.")
