@@ -127,23 +127,6 @@ public class PixelLikeWidget extends AppWidgetProvider{
     public void onEnabled(final Context context) {
         // Enter relevant functionality for when the first widget is created
         Log.i(TAG,"onEnable");
-        if(Build.VERSION.SDK_INT >= 27) {
-            /*
-            * For the first time when the widget is loaded it won't check for the wallpaper's color
-            */
-//            wallpaperAwareStuff(context);
-
-            /*
-            * Now set the listener for wallpaper's color change
-            */
-//            wallpaperManager.addOnColorsChangedListener(new WallpaperManager.OnColorsChangedListener() {
-//                @Override
-//                public void onColorsChanged(WallpaperColors colors, int which) {
-////                    wallpaperAwareStuff(context);
-//                }
-//            }, null);
-        }
-
     }
 
     @Override
