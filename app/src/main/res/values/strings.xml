@@ -50,4 +50,7 @@
     <!--Google Account Logout-->
     <string name="google_logout">LogOut</string>
 
+    <!-- Logged in as String -->
+    <string name="logged_in">Logged in user</string>
+
 </resources>
