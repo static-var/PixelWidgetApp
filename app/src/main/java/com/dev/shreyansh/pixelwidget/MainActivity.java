@@ -42,18 +42,25 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.Scope;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.api.services.calendar.CalendarScopes;
 
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.List;
 
@@ -193,11 +200,27 @@ public class MainActivity extends AppCompatActivity {
                         new Handler().postDelayed(new Runnable() {
                             @Override
                             public void run() {
-                                initialiseManagerListener();
-                                buildGoogleApiClient();
-                                googleApiClient.connect();
+                                if(!pingGoogle()) {
+                                    initialiseManagerListener();
+                                    buildGoogleApiClient();
+                                    googleApiClient.connect();
 
-                                progressDialog.dismiss();
+                                    progressDialog.dismiss();
+                                } else {
+                                    progressDialog.dismiss();
+                                    final AlertDialog builder = new AlertDialog.Builder(this, R.style.AlertDialogStyle)
+                                            .setCancelable(false)
+                                            .setTitle("Network TimeOut")
+                                            .setMessage("We are unable to connect to the servers. Please check your internet.")
+                                            .setNegativeButton("Exit", new DialogInterface.OnClickListener() {
+                                                @Override
+                                                public void onClick(DialogInterface dialog, int which) {
+                                                    finish();
+                                                }
+                                            })
+                                            .show();
+                                    builder.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(getResources().getColor(R.color.colorAccent));
+                                }
                             }
                         },1000);
                     }
@@ -612,23 +635,48 @@ public class MainActivity extends AppCompatActivity {
                 new Thread() {
                     public synchronized void run() {
                         Looper.prepare();
-                        if(googleApiClient != null && googleApiClient.isConnected()) {
-                            googleApiClient.disconnect();
+                        if(!pingGoogle()) {
+                            if (googleApiClient != null && googleApiClient.isConnected()) {
+                                googleApiClient.disconnect();
+                            }
+                            googleApiClient.connect();
+                            try {
+                                Thread.sleep(1000);
+                            } catch (InterruptedException e) {
+                                Log.e(TAG, e.toString());
+                            }
+                            progressDialog.dismiss();
+                            writeDataToUI();
+                        } else {
+                            progressDialog.dismiss();
+                            final AlertDialog builder = new AlertDialog.Builder(context, R.style.AlertDialogStyle)
+                                    .setCancelable(false)
+                                    .setTitle("Network TimeOut")
+                                    .setMessage("We are unable to connect to the servers. Please check your internet.")
+                                    .setNegativeButton("Exit", new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            finish();
+                                        }
+                                    })
+                                    .show();
+                            builder.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(getResources().getColor(R.color.colorAccent));
                         }
-                        googleApiClient.connect();
-                        try {
-                            Thread.sleep(1000);
-                        } catch (InterruptedException e) {
-                            Log.e(TAG, e.toString());
-                        }
-                        progressDialog.dismiss();
-                        writeDataToUI();
                     }
                 }.start();
 
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
+        }
+    }
+
+    private boolean pingGoogle() {
+        try {
+            String command = "ping -c 1 google.com";
+            return (Runtime.getRuntime().exec(command).waitFor() == 0);
+        } catch (Exception e) {
+            return false;
         }
     }
 }
