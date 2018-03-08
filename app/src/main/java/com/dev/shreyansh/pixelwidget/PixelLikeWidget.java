@@ -333,5 +333,3 @@ public class PixelLikeWidget extends AppWidgetProvider{
     }
 
 }
-
-// TODO : Use intent filter to check when the phone restart and when network connects
