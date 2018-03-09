@@ -1,6 +1,9 @@
 package com.dev.shreyansh.pixelwidget;
 
 import android.accounts.Account;
+import android.app.AlertDialog;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -31,6 +34,7 @@ import com.google.android.gms.tasks.Task;
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
 import com.google.api.client.util.ExponentialBackOff;
 import com.google.api.services.calendar.CalendarScopes;
+import com.google.api.services.calendar.model.Event;
 
 import org.apache.http.HttpStatus;
 import org.w3c.dom.Text;
@@ -64,6 +68,10 @@ public class GoogleAccountsActivity extends AppCompatActivity {
     private TextView emailTV;
     private LinearLayout displayDetails;
 
+    private Context context;
+
+    private static final Scope CALENDAR_SCOPE= new Scope(CalendarScopes.CALENDAR);
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -72,8 +80,10 @@ public class GoogleAccountsActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setElevation(0);
 
+        context = GoogleAccountsActivity.this;
+
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestScopes(new Scope(CalendarScopes.CALENDAR))
+                .requestScopes(CALENDAR_SCOPE)
                 .requestServerAuthCode(OpenWeatherKey.CLIENT_ID)
                 .requestIdToken(OpenWeatherKey.CLIENT_ID)
                 .requestEmail()
@@ -83,13 +93,7 @@ public class GoogleAccountsActivity extends AppCompatActivity {
 
         bind();
         GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this);
-        if(account!=null) {
-            fetchAndSetAccountDetails(account);
-            signInButton.setVisibility(View.INVISIBLE);
-            logoutButton.setVisibility(View.VISIBLE);
-        } else {
-            hideUI();
-        }
+        fetchAndSetAccountDetails(account);
         signInButton.setSize(SignInButton.SIZE_STANDARD);
         signInButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -159,13 +163,7 @@ public class GoogleAccountsActivity extends AppCompatActivity {
             GoogleSignInAccount account = completedTask.getResult(ApiException.class);
 
             // Signed in successfully, show authenticated UI.
-            if(account!=null) {
-                signInButton.setVisibility(View.INVISIBLE);
-                logoutButton.setVisibility(View.VISIBLE);
-                fetchAndSetAccountDetails(account);
-            } else {
-                hideUI();
-            }
+            fetchAndSetAccountDetails(account);
 
         } catch (ApiException e) {
             // The ApiException status code indicates the detailed failure reason.
@@ -194,10 +192,37 @@ public class GoogleAccountsActivity extends AppCompatActivity {
     }
 
     private void fetchAndSetAccountDetails(GoogleSignInAccount account) {
-        showUI();
-        name = account.getDisplayName();
-        email = account.getEmail();
-        nameTV.setText(name);
-        emailTV.setText(email);
+        if(account!=null) {
+            showUI();
+            name = account.getDisplayName();
+            email = account.getEmail();
+            nameTV.setText(name);
+            emailTV.setText(email);
+            signInButton.setVisibility(View.INVISIBLE);
+            logoutButton.setVisibility(View.VISIBLE);
+
+            if (!GoogleSignIn.hasPermissions(
+                    GoogleSignIn.getLastSignedInAccount(this), CALENDAR_SCOPE)) {
+                final AlertDialog builder = new AlertDialog.Builder(context, R.style.AlertDialogStyle)
+                        .setCancelable(false)
+                        .setTitle("No Access for Google Calendar")
+                        .setMessage("Please provide access to your Google Calendar to get the most out of the widget.")
+                        .setPositiveButton("Exit", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                GoogleSignIn.requestPermissions(GoogleAccountsActivity.this,
+                                        RC_SIGN_IN,
+                                        GoogleSignIn.getLastSignedInAccount(context), CALENDAR_SCOPE);
+                            }
+                        })
+                        .show();
+                builder.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(getResources().getColor(R.color.colorAccent));
+            } else {
+                /* Set Job Scheduler as soon as the user Logs in */
+                Util.widgetData(context,0);
+            }
+        } else {
+            hideUI();
+        }
     }
 }

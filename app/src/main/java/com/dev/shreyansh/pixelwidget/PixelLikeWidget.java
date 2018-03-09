@@ -138,7 +138,6 @@ public class PixelLikeWidget extends AppWidgetProvider{
             ComponentName thisAppWidget = new ComponentName(context.getPackageName(), PixelLikeWidget.class.getName());
             int[] appWidgetIds = appWidgetManager.getAppWidgetIds(thisAppWidget);
             onUpdate(context, appWidgetManager, appWidgetIds);
-            Log.i(TAG, "Aaya bc");
         }
     }
 
@@ -314,11 +313,10 @@ public class PixelLikeWidget extends AppWidgetProvider{
                 day = day + date.format(System.currentTimeMillis()) + " ";
                 date = new SimpleDateFormat("dd");
                 day = day + date.format(System.currentTimeMillis());
-                views.setTextViewText(R.id.date_or_event_duration, day + "  |");
+                views.setTextViewText(R.id.date_or_event_duration, day + "  |  ");
                 views.setTextViewText(R.id.event_display_widget, weather.getCityName());
                 views.setTextViewText(R.id.weather_temp, String.valueOf(Math.round(weather.getCurrentTemperature())) + (char) 0x00B0 + " C");
                 views.setImageViewResource(R.id.weather_icon, returnImageRes(weather.getDescription(), weather.getIsDayTime()));
-
                 ComponentName thisWidget = new ComponentName(context, PixelLikeWidget.class);
                 AppWidgetManager.getInstance(context).updateAppWidget(thisWidget, views);
                 googleApiClient.disconnect();

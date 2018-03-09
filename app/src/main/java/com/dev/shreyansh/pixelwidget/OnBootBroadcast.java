@@ -18,5 +18,6 @@ public class OnBootBroadcast extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         Log.i(TAG,"Broadcast receiver for Pixel Weather App.");
         /* Schedule Jobs here */
+        Util.widgetData(context,0);
     }
 }

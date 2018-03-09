@@ -133,6 +133,16 @@ public class MainActivity extends AppCompatActivity {
 
         progressDialog = new ProgressDialog(this);
 
+        /* Schedule Job if the user has logged in and if has granted us permission to access calendar */
+        GoogleSignInAccount account = null;
+        if (GoogleSignIn.hasPermissions(
+                GoogleSignIn.getLastSignedInAccount(this), new Scope(CalendarScopes.CALENDAR)))
+            account = GoogleSignIn.getLastSignedInAccount(this);
+        if(account != null) {
+            Log.i(TAG, "Lol");
+            Util.widgetData(getApplicationContext(), 0);
+        }
+
         /* Workaround to change the font of ActionBar */
         try {
             TextView tv = new TextView(getApplicationContext());
@@ -178,7 +188,6 @@ public class MainActivity extends AppCompatActivity {
          * It will load when the data is fetched from the internet
          */
         hero.setVisibility(View.INVISIBLE);
-        recyclerView.setVisibility(View.INVISIBLE);
 
         /* Request for location access if we don't have access already */
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
@@ -200,7 +209,7 @@ public class MainActivity extends AppCompatActivity {
                         new Handler().postDelayed(new Runnable() {
                             @Override
                             public void run() {
-                                if(!pingGoogle()) {
+                                if(pingGoogle()) {
                                     initialiseManagerListener();
                                     buildGoogleApiClient();
                                     googleApiClient.connect();
@@ -218,8 +227,15 @@ public class MainActivity extends AppCompatActivity {
                                                     finish();
                                                 }
                                             })
+                                            .setPositiveButton("Retry", new DialogInterface.OnClickListener() {
+                                                @Override
+                                                public void onClick(DialogInterface dialog, int which) {
+                                                    refreshUI();
+                                                }
+                                            })
                                             .show();
                                     builder.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(getResources().getColor(R.color.colorAccent));
+                                    builder.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(getResources().getColor(R.color.colorAccent));
                                 }
                             }
                         },1000);
@@ -504,7 +520,6 @@ public class MainActivity extends AppCompatActivity {
                         recyclerView.setVisibility(View.VISIBLE);
                     Animation fadeIn = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fade_in);
                     hero.startAnimation(fadeIn);
-                    recyclerView.startAnimation(fadeIn);
                 } else {
                     final AlertDialog builder = new AlertDialog.Builder(this, R.style.AlertDialogStyle)
                             .setCancelable(false)
@@ -625,46 +640,7 @@ public class MainActivity extends AppCompatActivity {
                 finish();
                 return true;
             case R.id.refresh:
-                hero.setVisibility(View.INVISIBLE);
-                progressDialog.setTitle("Refreshing");
-                progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-                progressDialog.setMessage("Fetching location and data.");
-                progressDialog.setCancelable(false);
-                progressDialog.setIndeterminate(true);
-                progressDialog.show();
-                new Thread() {
-                    public synchronized void run() {
-                        Looper.prepare();
-                        if(!pingGoogle()) {
-                            if (googleApiClient != null && googleApiClient.isConnected()) {
-                                googleApiClient.disconnect();
-                            }
-                            googleApiClient.connect();
-                            try {
-                                Thread.sleep(1000);
-                            } catch (InterruptedException e) {
-                                Log.e(TAG, e.toString());
-                            }
-                            progressDialog.dismiss();
-                            writeDataToUI();
-                        } else {
-                            progressDialog.dismiss();
-                            final AlertDialog builder = new AlertDialog.Builder(context, R.style.AlertDialogStyle)
-                                    .setCancelable(false)
-                                    .setTitle("Network TimeOut")
-                                    .setMessage("We are unable to connect to the servers. Please check your internet.")
-                                    .setNegativeButton("Exit", new DialogInterface.OnClickListener() {
-                                        @Override
-                                        public void onClick(DialogInterface dialog, int which) {
-                                            finish();
-                                        }
-                                    })
-                                    .show();
-                            builder.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(getResources().getColor(R.color.colorAccent));
-                        }
-                    }
-                }.start();
-
+                refreshUI();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -676,7 +652,57 @@ public class MainActivity extends AppCompatActivity {
             String command = "ping -c 1 google.com";
             return (Runtime.getRuntime().exec(command).waitFor() == 0);
         } catch (Exception e) {
+            Log.i(TAG, "Error", e);
             return false;
         }
+    }
+
+    private void refreshUI() {
+        hero.setVisibility(View.INVISIBLE);
+        progressDialog.setTitle("Refreshing");
+        progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+        progressDialog.setMessage("Fetching location and data.");
+        progressDialog.setCancelable(false);
+        progressDialog.setIndeterminate(true);
+        progressDialog.show();
+        new Thread() {
+            public synchronized void run() {
+                Looper.prepare();
+                if(pingGoogle()) {
+                    if (googleApiClient != null && googleApiClient.isConnected()) {
+                        googleApiClient.disconnect();
+                        googleApiClient.connect();
+                    }
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        Log.e(TAG, e.toString());
+                    }
+                    progressDialog.dismiss();
+                    writeDataToUI();
+                } else {
+                    progressDialog.dismiss();
+                    final AlertDialog builder = new AlertDialog.Builder(context, R.style.AlertDialogStyle)
+                            .setCancelable(false)
+                            .setTitle("Network TimeOut")
+                            .setMessage("We are unable to connect to the servers. Please check your internet.")
+                            .setPositiveButton("Retry", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    refreshUI();
+                                }
+                            })
+                            .setNegativeButton("Exit", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    finish();
+                                }
+                            })
+                            .show();
+                    builder.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(getResources().getColor(R.color.colorAccent));
+                    builder.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(getResources().getColor(R.color.colorAccent));
+                }
+            }
+        }.start();
     }
 }
