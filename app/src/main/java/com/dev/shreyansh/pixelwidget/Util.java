@@ -31,10 +31,9 @@ public class Util {
 //            builder.setMinimumLatency(50 * 10 * 1000); // wait at least
 //            builder.setOverrideDeadline(60 * 60 * 1000); // maximum delay
 //        }
-        builder.setMinimumLatency(10 * 60 * 1000); // wait at least 10 Minutes
-        builder.setOverrideDeadline(12 * 60 * 1000);
+        builder.setMinimumLatency(5 * 1000); // wait at least 10 Minutes
+        builder.setOverrideDeadline(10 * 1000);
         builder.setExtras(bundle);
-        builder.setPersisted(true);
         builder.setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY);
         builder.setRequiresCharging(false); // we don't care if the device is charging or not
         JobScheduler jobScheduler = (JobScheduler)  context.getSystemService(Context.JOB_SCHEDULER_SERVICE);

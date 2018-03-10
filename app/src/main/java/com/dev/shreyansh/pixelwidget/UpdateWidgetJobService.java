@@ -70,7 +70,7 @@ public class UpdateWidgetJobService extends JobService {
     public boolean onStartJob(JobParameters params) {
         Log.i(TAG, TAG + " Job Service started, ");
         count = params.getExtras().getInt("count");
-        if(count==6)
+        if(count==3)
             count = 0;
         else
             count++;

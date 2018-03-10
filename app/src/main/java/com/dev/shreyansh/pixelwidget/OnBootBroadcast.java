@@ -6,6 +6,11 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.common.api.Scope;
+import com.google.api.services.calendar.CalendarScopes;
+
 /**
  * Created by shreyansh on 3/8/18.
  */
@@ -17,7 +22,14 @@ public class OnBootBroadcast extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         Log.i(TAG,"Broadcast receiver for Pixel Weather App.");
-        /* Schedule Jobs here */
-        Util.widgetData(context,0);
+        /* Schedule Job if the user has logged in and if has granted us permission to access calendar */
+        GoogleSignInAccount account = null;
+        if (GoogleSignIn.hasPermissions(
+                GoogleSignIn.getLastSignedInAccount(context), new Scope(CalendarScopes.CALENDAR)))
+            account = GoogleSignIn.getLastSignedInAccount(context);
+        if(account != null) {
+            Log.i(TAG, "Lol");
+            Util.widgetData(context, 0);
+        }
     }
 }
