@@ -1,4 +1,20 @@
 apply plugin: 'com.android.application'
+apply plugin: 'io.fabric'
+
+repositories {
+    maven { url 'https://maven.fabric.io/public' }
+}
+
+
+buildscript {
+    repositories {
+        maven { url 'https://maven.fabric.io/public' }
+    }
+
+    dependencies {
+        classpath 'io.fabric.tools:gradle:1.+'
+    }
+}
 
 android {
     compileSdkVersion 27
@@ -42,5 +58,11 @@ dependencies {
     compile('com.google.apis:google-api-services-calendar:v3-rev296-1.23.0') {
         exclude group: 'org.apache.httpcomponents'
     }
+    compile('com.crashlytics.sdk.android:crashlytics:2.9.1@aar') {
+        transitive = true
+    }
 
+    compile 'com.google.firebase:firebase-core:11.8.0'
 }
+
+apply plugin: 'com.google.gms.google-services'
