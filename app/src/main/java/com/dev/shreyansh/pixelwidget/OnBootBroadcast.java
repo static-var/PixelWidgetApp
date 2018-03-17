@@ -29,7 +29,7 @@ public class OnBootBroadcast extends BroadcastReceiver {
             account = GoogleSignIn.getLastSignedInAccount(context);
         if(account != null) {
             Log.i(TAG, "Lol");
-            Util.widgetData(context, 0);
+            Util.widgetData(context);
         }
     }
 }

@@ -219,7 +219,7 @@ public class GoogleAccountsActivity extends AppCompatActivity {
                 builder.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(getResources().getColor(R.color.colorAccent));
             } else {
                 /* Set Job Scheduler as soon as the user Logs in */
-                Util.widgetData(context,0);
+                Util.widgetData(context);
             }
         } else {
             hideUI();

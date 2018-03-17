@@ -145,7 +145,7 @@ public class MainActivity extends AppCompatActivity {
             account = GoogleSignIn.getLastSignedInAccount(this);
         if(account != null) {
             Log.i(TAG, "Lol");
-            Util.widgetData(getApplicationContext(), 0);
+            Util.widgetData(getApplicationContext());
         }
 
         /* Workaround to change the font of ActionBar */
@@ -489,6 +489,12 @@ public class MainActivity extends AppCompatActivity {
         if (location != null) {
             try {
                 /* Get weather data  */
+                if(hero.getVisibility()!=View.VISIBLE)
+                    hero.setVisibility(View.VISIBLE);
+                if(recyclerView.getVisibility()!=View.VISIBLE)
+                    recyclerView.setVisibility(View.VISIBLE);
+                Animation fadeIn = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fade_in);
+                hero.startAnimation(fadeIn);
                 progressDialog.setTitle("Loading Data");
                 progressDialog.setMessage("Fetching location and weather details.");
                 weatherData = new FetchAsync().execute(location.getLatitude(), location.getLongitude()).get();
@@ -518,12 +524,6 @@ public class MainActivity extends AppCompatActivity {
                     sunrise.setText(weather.getSunrise());
                     sunset.setText(weather.getSunset());
                     weatherImage.setImageResource(returnImageRes(weather.getDescription(), weather.getIsDayTime()));
-                    if(hero.getVisibility()!=View.VISIBLE)
-                        hero.setVisibility(View.VISIBLE);
-                    if(recyclerView.getVisibility()!=View.VISIBLE)
-                        recyclerView.setVisibility(View.VISIBLE);
-                    Animation fadeIn = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fade_in);
-                    hero.startAnimation(fadeIn);
                 } else {
                     final AlertDialog builder = new AlertDialog.Builder(this, R.style.AlertDialogStyle)
                             .setCancelable(false)

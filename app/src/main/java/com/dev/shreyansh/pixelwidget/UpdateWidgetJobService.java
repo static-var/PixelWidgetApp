@@ -49,10 +49,10 @@ public class UpdateWidgetJobService extends JobService {
     private static final int DISPLACEMENT = 10;
     private static final int FASTEST_UPDATE = 1000;
 
-    private boolean isWorking = false;
-    private boolean jobCancelled = false;
+    public static int COUNT = 0;
+
     private boolean eventScheduled = false;
-    private boolean isFullDayEvent = false;
+    private boolean overrideDate = false;
     private int count;
 
     private Weather weather;
@@ -69,28 +69,21 @@ public class UpdateWidgetJobService extends JobService {
     @Override
     public boolean onStartJob(JobParameters params) {
         Log.i(TAG, TAG + " Job Service started, ");
-        count = params.getExtras().getInt("count");
-        if(count==3)
-            count = 0;
+        if(COUNT==9)
+            COUNT = 0;
         else
-            count++;
-        isWorking = true;
+            COUNT++;
         startWorkOnNewThread(params);
 
-        // TODO : Set Weather update to happen only once in 3 Runs
-        Util.widgetData(getApplicationContext(),count);
-        return isWorking;
+        return true;
     }
 
     @Override
     public boolean onStopJob(JobParameters params) {
-        if(isWorking) {
-            Log.d(TAG, TAG + " Job cancelled before being completed.");
-            jobCancelled = true;
-        }
-        boolean needsReschedule = isWorking;
-        jobFinished(params, needsReschedule);
-        return needsReschedule;
+
+        Log.i(TAG,"Job Stopped.");
+        jobFinished(params, true);
+        return true;
     }
 
     private void startWorkOnNewThread(final JobParameters jobParameters) {
@@ -103,34 +96,27 @@ public class UpdateWidgetJobService extends JobService {
         * Below is a workaround which will make sure that weather gets updated only 1 time
         * even when the calender API related work will happen all 4 times
         */
-        Log.i(TAG,"Counter : "+String.valueOf(count));
+        Log.i(TAG,"Counter : "+String.valueOf(COUNT));
         new Thread(new Runnable() {
             public void run() {
-                googleCalendarWork(getApplicationContext());
-                if(count == 1) {
-                    doWork(jobParameters);
+                googleCalendarWork(getApplicationContext(), jobParameters);
+                if(COUNT == 1) {
+                    doWork();
                 }
             }
         }).start();
     }
 
-    private void doWork(final JobParameters jobParameters) {
-        /* If the job has been cancelled, stop working; the job will be rescheduled. */
-        if (jobCancelled)
-            return;
-
+    private synchronized void doWork() {
         new Thread() {
             public void run() {
                 doAllLocationStuff(getApplicationContext());
-                Log.d(TAG, TAG + " Job finished!");
-                isWorking = false;
-                jobFinished(jobParameters, false);
             }
         }.start();
 
     }
 
-    private void doAllLocationStuff(Context context) {
+    private synchronized void doAllLocationStuff(Context context) {
         if(checkNetwork(context)) {
             if(pingGoogle()) {
                 if (checkPlayServices(context)) {
@@ -312,7 +298,7 @@ public class UpdateWidgetJobService extends JobService {
         }
     }
 
-    private synchronized void displayDataOnWidget(Context context){
+    private void displayDataOnWidget(Context context){
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.pixel_like_widget);
         SimpleDateFormat date = new SimpleDateFormat("EEEE");
         String day = date.format(System.currentTimeMillis()) + ", ";
@@ -322,7 +308,7 @@ public class UpdateWidgetJobService extends JobService {
         day = day + date.format(System.currentTimeMillis());
         if(!eventScheduled)
             views.setTextViewText(R.id.event_display_widget, weather.getCityName());
-        if(isFullDayEvent)
+        if(!overrideDate)
             views.setTextViewText(R.id.date_or_event_duration, day + "  |  ");
         views.setTextViewText(R.id.weather_temp, String.valueOf(Math.round(weather.getCurrentTemperature())) + (char) 0x00B0 + " C");
         views.setImageViewResource(R.id.weather_icon, returnImageRes(weather.getDescription(), weather.getIsDayTime()));
@@ -332,7 +318,7 @@ public class UpdateWidgetJobService extends JobService {
         Log.i(TAG,"Widget Updated");
     }
 
-    private synchronized void googleCalendarWork(final Context context) {
+    private synchronized void googleCalendarWork(final Context context, final JobParameters parameters) {
         new Thread() {
             public void run() {
                 try {
@@ -340,17 +326,17 @@ public class UpdateWidgetJobService extends JobService {
                 } catch (Exception e) {
                     Log.e(TAG,"Google Account Sign In Issue",e);
                 }
-                if (eventList == null || eventList.size() == 0)
+                if (eventList == null || eventList.size() == 0) {
                     Log.i(TAG, "User has not yet Signed in.");
-                else {
+                } else {
                     Log.i(TAG, "Signed In");
-                    processEventList(eventList, context);
+                    processEventList(eventList, context, parameters);
                 }
             }
         }.start();
     }
 
-    private void processEventList(List<Event> eventList,Context context) {
+    private void processEventList(List<Event> eventList,Context context, JobParameters parameters) {
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.pixel_like_widget);
         ComponentName thisWidget = new ComponentName(context, PixelLikeWidget.class);
         SimpleDateFormat date = new SimpleDateFormat("h:mm a");
@@ -360,6 +346,7 @@ public class UpdateWidgetJobService extends JobService {
         int counter = eventList.size();
         if(counter == 0) {
             eventScheduled = false;
+            overrideDate = false;
             return;
         }
         else if(counter == 1){
@@ -380,15 +367,16 @@ public class UpdateWidgetJobService extends JobService {
                     startAndEnd = startAndEnd + date.format(expire);
                     views.setTextViewText(R.id.date_or_event_duration, startAndEnd + "   | ");
                     eventScheduled = true;
-                    isFullDayEvent = false;
+                    overrideDate = true;
                     views.setTextViewText(R.id.event_display_widget, "Event : "+eventList.get(0).getSummary());
                 } else {
                     eventScheduled = false;
+                    overrideDate = false;
                 }
             } else {
                 /* All-day events don't have start times, so just set the event name */
                 eventScheduled = true;
-                isFullDayEvent = true;
+                overrideDate = false;
                 views.setTextViewText(R.id.event_display_widget, eventList.get(0).getSummary());
             }
         } else {
@@ -409,15 +397,17 @@ public class UpdateWidgetJobService extends JobService {
             if(now < expire && now > (timeInMS-(30*60*1000))) {
                 views.setTextViewText(R.id.date_or_event_duration, startAndEnd + "   | ");
                 eventScheduled = true;
-                isFullDayEvent = false;
+                overrideDate = true;
                 views.setTextViewText(R.id.event_display_widget, "Event : "+eventList.get(index).getSummary());
             } else {
                 eventScheduled = false;
+                overrideDate = false;
             }
         }
         /* Call widget for update */
         AppWidgetManager.getInstance(context).updateAppWidget(thisWidget, views);
-
+        Log.i(TAG,"Job Service Ends.");
+        jobFinished(parameters, true);
     }
 
 }
