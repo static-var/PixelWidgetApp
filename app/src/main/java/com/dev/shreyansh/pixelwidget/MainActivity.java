@@ -45,39 +45,29 @@ import android.widget.Toast;
 import com.crashlytics.android.Crashlytics;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
-import com.google.android.gms.auth.api.signin.GoogleSignInClient;
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.awareness.Awareness;
+import com.google.android.gms.awareness.snapshot.LocationResult;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Scope;
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationListener;
-import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.api.services.calendar.CalendarScopes;
 
 import io.fabric.sdk.android.Fabric;
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
 
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.List;
-
-import io.fabric.sdk.android.Fabric;
 
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "PixelLocationWidget";
-    private static final int UPDATE_DURATION = 10000;
-    private static final int DISPLACEMENT = 10;
-    private static final int FASTEST_UPDATE = 1000;
     private static final String degree = (char) 0x00B0+" C";
 
-    private LocationManager locationManager;
     public Location location;
+    public LocationManager locationManager;
 
     private final int PERMISSION_ACCESS_FINE_LOCATION = 0;
     private final int PERMISSION_ACCESS_COARSE_LOCATION = 1;
@@ -110,9 +100,6 @@ public class MainActivity extends AppCompatActivity {
     /* Google API Client */
     private GoogleApiClient googleApiClient;
     private final static int PLAY_SERVICES_RESOLUTION_REQUEST = 1000;
-    private LocationRequest locationRequest;
-    private LocationListener locationListener;
-    private FusedLocationProviderClient fusedLocationProviderClient;
 
     /* Forecast data */
     private List<ForecastSingleDayWeather> forecastSingleDayWeathers;
@@ -214,11 +201,8 @@ public class MainActivity extends AppCompatActivity {
                             @Override
                             public void run() {
                                 if(pingGoogle()) {
-                                    initialiseManagerListener();
-                                    buildGoogleApiClient();
-                                    googleApiClient.connect();
-
-                                    progressDialog.dismiss();
+                                    /* Fetch Location */
+                                    apiClientWork();
                                 } else {
                                     progressDialog.dismiss();
                                     final AlertDialog builder = new AlertDialog.Builder(context, R.style.AlertDialogStyle)
@@ -242,7 +226,7 @@ public class MainActivity extends AppCompatActivity {
                                     builder.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(getResources().getColor(R.color.colorAccent));
                                 }
                             }
-                        },1000);
+                        },500);
                     }
                 } else {
                     final AlertDialog builder = new AlertDialog.Builder(this, R.style.AlertDialogStyle)
@@ -282,11 +266,9 @@ public class MainActivity extends AppCompatActivity {
                     Log.i(TAG,String.valueOf(a));
                 }
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    /* Set listeners if location is granted */
-                    if (checkPlayServices()){
-                        initialiseManagerListener();
-                        buildGoogleApiClient();
-                        googleApiClient.connect();
+                    /* Fetch Location */
+                    if(locationUserspaceHandler()) {
+                        apiClientWork();
                     }
                 } else {
                     Toast.makeText(this, "Need your location!", Toast.LENGTH_SHORT).show();
@@ -296,30 +278,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /* Initialize listener, request and manager */
-    public synchronized void initialiseManagerListener() {
-        locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
-        if(locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER))
-            locationRequest = LocationRequest.create()
-                .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
-                .setInterval(UPDATE_DURATION)
-                .setSmallestDisplacement(DISPLACEMENT)
-                .setFastestInterval(FASTEST_UPDATE);
-        else
-            locationRequest = LocationRequest.create()
-                    .setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY)
-                    .setInterval(UPDATE_DURATION)
-                    .setSmallestDisplacement(DISPLACEMENT)
-                    .setFastestInterval(FASTEST_UPDATE);
-        locationListener = new LocationListener() {
-            @Override
-            public void onLocationChanged(Location location) {
-                try {
-                    setLocation(location);
-                } catch (Exception e) {
-                    //
-                }
-            }
-        };
+    public synchronized boolean locationUserspaceHandler() {
+        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         boolean gps_enabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
         boolean network_enabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
 
@@ -344,17 +304,12 @@ public class MainActivity extends AppCompatActivity {
                     }).show();
             builder.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(getResources().getColor(R.color.colorAccent));
             builder.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(getResources().getColor(R.color.colorAccent));
+            return false;
 
         } else {
             locationDisabled.setVisibility(View.INVISIBLE);
+            return true;
         }
-        locationDisabled.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent settings = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-                startActivityForResult(settings, 2);
-            }
-        });
     }
 
     /* Update the changed location and UI with it */
@@ -436,59 +391,13 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
-    /* Build Google's FuseLocation Service */
-    private synchronized void buildGoogleApiClient() {
-        googleApiClient = new GoogleApiClient.Builder(context)
-                .addConnectionCallbacks(ret())
-                .addOnConnectionFailedListener(retFail())
-                .addApi(LocationServices.API).build();
-    }
-
-    /* ConnectionCallback function */
-    @SuppressWarnings("deprecation")
-    private GoogleApiClient.ConnectionCallbacks ret(){
-        return new GoogleApiClient.ConnectionCallbacks() {
-            @Override
-            public synchronized void onConnected(@Nullable Bundle bundle) {
-                if(ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION)
-                        == PackageManager.PERMISSION_GRANTED && locationManager != null) {
-                    locationManager =  (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-                    LocationServices.FusedLocationApi.requestLocationUpdates(googleApiClient, locationRequest, locationListener);
-                    location = LocationServices.FusedLocationApi.getLastLocation(googleApiClient);
-                    writeDataToUI();
-                }
-            }
-
-            @Override
-            public void onConnectionSuspended(int i) {
-                googleApiClient.connect();
-            }
-        };
-    }
-
-    /* OnConnectionFailedListener function */
-    private GoogleApiClient.OnConnectionFailedListener retFail() {
-        return new GoogleApiClient.OnConnectionFailedListener() {
-            @Override
-            public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-                Log.i(TAG,"Not able to get Location through Fuse API");
-            }
-        };
-    }
-
-    @Override
-    public void onDestroy(){
-        super.onDestroy();
-        if(googleApiClient != null && googleApiClient.isConnected()) {
-            googleApiClient.disconnect();
-        }
-    }
 
     /* Write Weather Data to UI */
     public void writeDataToUI(){
         if (location != null) {
             try {
                 /* Get weather data  */
+                progressDialog.dismiss();
                 if(hero.getVisibility()!=View.VISIBLE)
                     hero.setVisibility(View.VISIBLE);
                 if(recyclerView.getVisibility()!=View.VISIBLE)
@@ -524,6 +433,7 @@ public class MainActivity extends AppCompatActivity {
                     sunrise.setText(weather.getSunrise());
                     sunset.setText(weather.getSunset());
                     weatherImage.setImageResource(returnImageRes(weather.getDescription(), weather.getIsDayTime()));
+                    googleApiClient.disconnect();
                 } else {
                     final AlertDialog builder = new AlertDialog.Builder(this, R.style.AlertDialogStyle)
                             .setCancelable(false)
@@ -542,22 +452,10 @@ public class MainActivity extends AppCompatActivity {
             catch (Exception e) {
                 Log.e(TAG, e.toString());
             }
-        } else {
-            fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                    != PackageManager.PERMISSION_GRANTED) {
-                fusedLocationProviderClient.getLastLocation().addOnSuccessListener(this, new OnSuccessListener<Location>() {
-                    @Override
-                    public void onSuccess(Location location) {
-                        setLocation(location);
-                    }
-                });
-            }
         }
     }
 
     public int returnImageRes(String weather, boolean isStillDay) {
-
         if(isStillDay) {
             switch (weather.toLowerCase().trim()) {
                 case "clear sky":
@@ -673,16 +571,15 @@ public class MainActivity extends AppCompatActivity {
             public synchronized void run() {
                 Looper.prepare();
                 if(pingGoogle()) {
-                    if (googleApiClient != null && googleApiClient.isConnected()) {
-                        googleApiClient.disconnect();
-                        googleApiClient.connect();
+                    /* Fetch Location */
+                    if(locationUserspaceHandler()) {
+                        apiClientWork();
                     }
                     try {
                         Thread.sleep(1000);
                     } catch (InterruptedException e) {
                         Log.e(TAG, e.toString());
                     }
-                    progressDialog.dismiss();
                     writeDataToUI();
                 } else {
                     progressDialog.dismiss();
@@ -708,5 +605,44 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         }.start();
+    }
+
+    private synchronized void apiClientWork() {
+        if(checkPlayServices()) {
+            googleApiClient = new GoogleApiClient.Builder(context)
+                    .addApi(Awareness.API)
+                    .addConnectionCallbacks(connectionCallbacks())
+                    .build();
+            googleApiClient.connect();
+        }
+    }
+
+    @SuppressWarnings("deprecation")
+    private GoogleApiClient.ConnectionCallbacks connectionCallbacks() {
+        return new GoogleApiClient.ConnectionCallbacks() {
+            @Override
+            public void onConnected(@Nullable Bundle bundle) {
+                if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
+                        != PackageManager.PERMISSION_GRANTED) {
+                    return;
+                } else {
+                    Awareness.SnapshotApi.getLocation(googleApiClient).setResultCallback(new ResultCallback<LocationResult>() {
+                        @Override
+                        public void onResult(@NonNull LocationResult locationResult) {
+                            if (locationResult.getStatus().isSuccess()) {
+                                location = locationResult.getLocation();
+                                Log.i(TAG, location.getLatitude() + "");
+                                writeDataToUI();
+                            }
+                        }
+                    });
+                }
+            }
+
+            @Override
+            public void onConnectionSuspended(int i) {
+
+            }
+        };
     }
 }
