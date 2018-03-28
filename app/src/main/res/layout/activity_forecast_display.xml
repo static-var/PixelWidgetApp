@@ -61,7 +61,7 @@
             android:layout_height="wrap_content"
             style="@style/TextViewCustom"
             android:text="@string/forecast_min_temp"
-            android:textSize="18sp"/>
+            android:textSize="14sp"/>
 
         <TextView
             android:layout_width="0dp"
@@ -69,7 +69,7 @@
             android:layout_height="wrap_content"
             style="@style/TextViewCustom"
             android:text="@string/forecast_max_temp"
-            android:textSize="18sp"/>
+            android:textSize="14sp"/>
     </LinearLayout>
 
     <LinearLayout
@@ -85,7 +85,7 @@
             android:layout_weight="1"
             android:layout_height="wrap_content"
             style="@style/TextViewCustom"
-            android:textSize="18sp"/>
+            android:textSize="14sp"/>
 
         <TextView
             android:id="@+id/max_temp_value"
@@ -93,7 +93,7 @@
             android:layout_weight="1"
             android:layout_height="wrap_content"
             style="@style/TextViewCustom"
-            android:textSize="18sp"/>
+            android:textSize="14sp"/>
     </LinearLayout>
     <!--End of max and min temperature-->
 
@@ -112,7 +112,7 @@
             android:layout_height="wrap_content"
             style="@style/TextViewCustom"
             android:text="@string/forecast_day_temp"
-            android:textSize="18sp"/>
+            android:textSize="14sp"/>
 
         <TextView
             android:layout_width="0dp"
@@ -120,7 +120,7 @@
             android:layout_height="wrap_content"
             style="@style/TextViewCustom"
             android:text="@string/forecast_night_temp"
-            android:textSize="18sp"/>
+            android:textSize="14sp"/>
     </LinearLayout>
 
     <LinearLayout
@@ -136,7 +136,7 @@
             android:layout_weight="1"
             android:layout_height="wrap_content"
             style="@style/TextViewCustom"
-            android:textSize="18sp"/>
+            android:textSize="14sp"/>
 
         <TextView
             android:id="@+id/forecast_night_value"
@@ -144,7 +144,7 @@
             android:layout_weight="1"
             android:layout_height="wrap_content"
             style="@style/TextViewCustom"
-            android:textSize="18sp"/>
+            android:textSize="14sp"/>
     </LinearLayout>
     <!--End of day and night temperature-->
 
@@ -163,7 +163,7 @@
             android:layout_height="wrap_content"
             style="@style/TextViewCustom"
             android:text="@string/forecast_morning_temp"
-            android:textSize="18sp"/>
+            android:textSize="14sp"/>
 
         <TextView
             android:layout_width="0dp"
@@ -171,7 +171,7 @@
             android:layout_height="wrap_content"
             style="@style/TextViewCustom"
             android:text="@string/forecast_evening_temp"
-            android:textSize="18sp"/>
+            android:textSize="14sp"/>
     </LinearLayout>
 
     <LinearLayout
@@ -187,7 +187,7 @@
             android:layout_weight="1"
             android:layout_height="wrap_content"
             style="@style/TextViewCustom"
-            android:textSize="18sp"/>
+            android:textSize="14sp"/>
 
         <TextView
             android:id="@+id/forecast_evening_value"
@@ -195,7 +195,7 @@
             android:layout_weight="1"
             android:layout_height="wrap_content"
             style="@style/TextViewCustom"
-            android:textSize="18sp"/>
+            android:textSize="14sp"/>
     </LinearLayout>
     <!--End of morning and evening day temperature-->
 
@@ -214,7 +214,7 @@
             android:layout_height="wrap_content"
             style="@style/TextViewCustom"
             android:text="@string/forecast_cloudiness"
-            android:textSize="18sp"/>
+            android:textSize="14sp"/>
 
         <TextView
             android:layout_width="0dp"
@@ -222,7 +222,7 @@
             android:layout_height="wrap_content"
             style="@style/TextViewCustom"
             android:text="@string/forecast_humidity"
-            android:textSize="18sp"/>
+            android:textSize="14sp"/>
 
         <TextView
             android:layout_width="0dp"
@@ -230,7 +230,7 @@
             android:layout_height="wrap_content"
             style="@style/TextViewCustom"
             android:text="@string/forecast_wind"
-            android:textSize="18sp"/>
+            android:textSize="14sp"/>
     </LinearLayout>
 
     <LinearLayout
@@ -246,7 +246,7 @@
             android:layout_weight="1"
             android:layout_height="wrap_content"
             style="@style/TextViewCustom"
-            android:textSize="18sp"/>
+            android:textSize="14sp"/>
 
         <TextView
             android:id="@+id/forecast_humidity_value"
@@ -254,7 +254,7 @@
             android:layout_weight="1"
             android:layout_height="wrap_content"
             style="@style/TextViewCustom"
-            android:textSize="18sp"/>
+            android:textSize="14sp"/>
 
         <TextView
             android:id="@+id/forecast_wind_value"
@@ -262,7 +262,7 @@
             android:layout_weight="1"
             android:layout_height="wrap_content"
             style="@style/TextViewCustom"
-            android:textSize="18sp"/>
+            android:textSize="14sp"/>
     </LinearLayout>
     <!--End of humidity cloudiness and wind speed-->
 
