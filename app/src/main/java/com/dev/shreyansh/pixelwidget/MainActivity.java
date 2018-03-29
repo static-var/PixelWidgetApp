@@ -15,6 +15,7 @@ import android.location.Location;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
 import android.provider.Settings;
@@ -131,7 +132,6 @@ public class MainActivity extends AppCompatActivity {
                 GoogleSignIn.getLastSignedInAccount(this), new Scope(CalendarScopes.CALENDAR)))
             account = GoogleSignIn.getLastSignedInAccount(this);
         if(account != null) {
-            Log.i(TAG, "Lol");
             Util.widgetData(getApplicationContext());
         }
 
@@ -266,12 +266,36 @@ public class MainActivity extends AppCompatActivity {
                     Log.i(TAG,String.valueOf(a));
                 }
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    /* Fetch Location */
-                    if(locationUserspaceHandler()) {
-                        apiClientWork();
-                    }
+                    /* Restart the app. */
+                    Intent i = getBaseContext().getPackageManager()
+                            .getLaunchIntentForPackage( getBaseContext().getPackageName() );
+                    i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                    startActivity(i);
                 } else {
-                    Toast.makeText(this, "Need your location!", Toast.LENGTH_SHORT).show();
+                    /* Show alert with appropriate options */
+                    AlertDialog builder = new AlertDialog.Builder(this)
+                            .setMessage("We require Location permission.")
+                            .setTitle("Location Permission.")
+                            .setCancelable(false)
+                            .setPositiveButton("Grant Permission", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    Intent intent = new Intent();
+                                    intent.setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                                    Uri uri = Uri.fromParts("package", getPackageName(), null);
+                                    intent.setData(uri);
+                                    startActivity(intent);
+                                }
+                            })
+                            .setNegativeButton("Close App", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    finish();
+                                }
+                            })
+                            .show();
+                    builder.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(getResources().getColor(R.color.colorAccent));
+                    builder.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(getResources().getColor(R.color.colorAccent));
                 }
                 break;
         }
