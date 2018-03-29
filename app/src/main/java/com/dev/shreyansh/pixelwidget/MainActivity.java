@@ -331,7 +331,13 @@ public class MainActivity extends AppCompatActivity {
             return false;
 
         } else {
-            locationDisabled.setVisibility(View.INVISIBLE);
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    locationDisabled.setVisibility(View.INVISIBLE);
+                }
+            });
+
             return true;
         }
     }
@@ -417,11 +423,12 @@ public class MainActivity extends AppCompatActivity {
 
 
     /* Write Weather Data to UI */
-    public void writeDataToUI(){
+    public synchronized void writeDataToUI(){
         if (location != null) {
             try {
                 /* Get weather data  */
-                progressDialog.dismiss();
+                if(progressDialog.isShowing())
+                    progressDialog.dismiss();
                 if(hero.getVisibility()!=View.VISIBLE)
                     hero.setVisibility(View.VISIBLE);
                 if(recyclerView.getVisibility()!=View.VISIBLE)
@@ -439,12 +446,17 @@ public class MainActivity extends AppCompatActivity {
 
                     Log.i(TAG, String.valueOf(forecastSingleDayWeathers.size()));
                     forecastAdapter = new ForecastAdapter(forecastSingleDayWeathers, (Activity) context);
-                    RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(context);
-                    recyclerView.setLayoutManager(layoutManager);
-                    recyclerView.setHasFixedSize(true);
-                    recyclerView.setItemAnimator(new DefaultItemAnimator());
-                    recyclerView.addItemDecoration(new DividerItemDecoration(context, null));
-                    recyclerView.setAdapter(forecastAdapter);
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(context);
+                            recyclerView.setLayoutManager(layoutManager);
+                            recyclerView.setHasFixedSize(true);
+                            recyclerView.setItemAnimator(new DefaultItemAnimator());
+                            recyclerView.addItemDecoration(new DividerItemDecoration(context, null));
+                            recyclerView.setAdapter(forecastAdapter);
+                        }
+                    });
 
                     /* Set Data in UI */
                     currentBigTemp.setText(String.valueOf(weather.getCurrentTemperature()) + degree);
@@ -541,6 +553,10 @@ public class MainActivity extends AppCompatActivity {
         if(requestCode == 2) {
             Intent i = getBaseContext().getPackageManager()
                     .getLaunchIntentForPackage( getBaseContext().getPackageName() );
+
+            if(progressDialog.isShowing())
+                progressDialog.dismiss();
+
             i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             startActivity(i);
         }
@@ -591,6 +607,7 @@ public class MainActivity extends AppCompatActivity {
         progressDialog.setCancelable(false);
         progressDialog.setIndeterminate(true);
         progressDialog.show();
+
         new Thread() {
             public synchronized void run() {
                 Looper.prepare();
@@ -604,7 +621,6 @@ public class MainActivity extends AppCompatActivity {
                     } catch (InterruptedException e) {
                         Log.e(TAG, e.toString());
                     }
-                    writeDataToUI();
                 } else {
                     progressDialog.dismiss();
                     final AlertDialog builder = new AlertDialog.Builder(context, R.style.AlertDialogStyle)
