@@ -613,14 +613,15 @@ public class MainActivity extends AppCompatActivity {
                 Looper.prepare();
                 if(pingGoogle()) {
                     /* Fetch Location */
-                    if(locationUserspaceHandler()) {
-                        apiClientWork();
-                    }
                     try {
-                        Thread.sleep(1000);
+                        Thread.sleep(500);
                     } catch (InterruptedException e) {
                         Log.e(TAG, e.toString());
                     }
+                    if(locationUserspaceHandler()) {
+                        apiClientWork();
+                    }
+
                 } else {
                     progressDialog.dismiss();
                     final AlertDialog builder = new AlertDialog.Builder(context, R.style.AlertDialogStyle)
