@@ -5,6 +5,9 @@
         android:id="@+id/google_sign_in"
         android:title="@string/google_sign_in" />
     <item
+        android:id="@+id/settings"
+        android:title="@string/settings" />
+    <item
         android:id="@+id/exit"
         android:title="@string/exit" />
     <item

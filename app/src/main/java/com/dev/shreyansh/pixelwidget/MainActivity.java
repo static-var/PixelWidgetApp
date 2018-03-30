@@ -584,6 +584,8 @@ public class MainActivity extends AppCompatActivity {
             case R.id.refresh:
                 refreshUI();
                 return true;
+            case R.id.settings:
+                /* Open app settings */
             default:
                 return super.onOptionsItemSelected(item);
         }

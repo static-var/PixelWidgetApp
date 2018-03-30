@@ -53,4 +53,7 @@
     <!-- Logged in as String -->
     <string name="logged_in">Logged in user</string>
 
+    <!-- Settings String -->
+    <string name="settings">Settings</string>
+
 </resources>
