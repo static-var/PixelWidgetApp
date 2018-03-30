@@ -24,21 +24,13 @@ public class Util {
         ComponentName serviceComponent = new ComponentName(context, UpdateWidgetJobService.class);
         JobInfo.Builder builder = new JobInfo.Builder(JOB_WIDGET_UPDATE, serviceComponent);
 
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-//            builder.setPeriodic(60 * 60 * 1000,  JobInfo.getMinFlexMillis());
-//        } else {
-//            builder.setMinimumLatency(50 * 10 * 1000); // wait at least
-//            builder.setOverrideDeadline(60 * 60 * 1000); // maximum delay
-//        }
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            builder.setMinimumLatency(60 * 1000);
-            builder.setOverrideDeadline(15 * 60 * 1000);
+            builder.setMinimumLatency(REFRESH_INTERVAL);
+            builder.setOverrideDeadline(REFRESH_INTERVAL);
         } else {
             builder.setPeriodic(REFRESH_INTERVAL);
         }
         builder.setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY);
-        builder.setBackoffCriteria(30000, JobInfo.BACKOFF_POLICY_EXPONENTIAL);
         builder.setRequiresCharging(false); // we don't care if the device is charging or not
         JobScheduler jobScheduler = (JobScheduler)  context.getSystemService(Context.JOB_SCHEDULER_SERVICE);
         jobScheduler.schedule(builder.build());
