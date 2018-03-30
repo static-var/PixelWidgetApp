@@ -28,6 +28,16 @@ public class Util {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             builder.setMinimumLatency(REFRESH_INTERVAL);
+
+            /*
+            * When UpdateWidgetJobService#onStartService will call this function
+            * Check if we have access to internet or not
+            * If we have internet, then only set OverrideDeadline
+            * As this property will run the JobService even when there's no network
+            * or when phone is in doze more
+            * This check will save some juice.
+            */
+            if(checkNetwork(context) && pingGoogle())
                 builder.setOverrideDeadline(REFRESH_INTERVAL);
         } else {
             builder.setPeriodic(REFRESH_INTERVAL);
