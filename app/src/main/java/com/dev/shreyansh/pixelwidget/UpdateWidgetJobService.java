@@ -94,7 +94,7 @@ public class UpdateWidgetJobService extends JobService {
         private boolean eventScheduled = false;
         private boolean overrideDate = false;
         private static int COUNT = 0;
-        
+
         private DoWork(Context context) {
             contextWeakReference = new WeakReference<>(context);
         }

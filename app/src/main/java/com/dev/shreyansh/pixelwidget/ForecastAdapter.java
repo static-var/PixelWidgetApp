@@ -75,12 +75,13 @@ public class ForecastAdapter extends RecyclerView.Adapter<ForecastAdapter.MyView
         View itemView = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.recycler_row_view, viewGroup, false);
         return new MyViewHolder(itemView);
     }
+
     @Override
     public void onBindViewHolder(MyViewHolder holder, int position) {
         ForecastSingleDayWeather forecastSingleDayWeather = forecastSingleDayWeathers.get(position);
         holder.forecastImage.setImageResource(returnImageRes(forecastSingleDayWeather.getDescWeather()));
         holder.forecastDay.setText(Html.fromHtml(forecastSingleDayWeather.getDateText()));
-        holder.forecastTemp.setText(String.valueOf(forecastSingleDayWeather.getDayTemperature()) + (char) 0x00B0+ " C");
+        holder.forecastTemp.setText(String.valueOf(Math.round(forecastSingleDayWeather.getDayTemperature())) + " "+(char) 0x00B0+ "C");
         holder.dayWeather = forecastSingleDayWeathers.get(position);
         holder.thisActivity = activity;
     }

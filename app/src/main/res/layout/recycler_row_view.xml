@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@color/background"
-    android:weightSum="12"
+    android:weightSum="14"
     android:paddingBottom="2dp"
     android:paddingTop="2dp">
 
@@ -14,8 +14,8 @@
         android:layout_height="match_parent"
         android:paddingStart="8dp"
         android:gravity="start|center_vertical"
-        android:layout_weight="7"
-        android:textSize="20sp"
+        android:layout_weight="8"
+        android:textSize="16sp"
         android:textColor="@android:color/black" />
 
     <TextView
@@ -23,9 +23,9 @@
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:gravity="end|center_vertical"
-        android:layout_weight="3"
+        android:layout_weight="4"
         android:paddingEnd="8dp"
-        android:textSize="20sp"
+        android:textSize="16sp"
         android:textColor="@color/primary_dark"/>
 
     <ImageView
@@ -33,7 +33,6 @@
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_weight="2"
-        android:padding="8dp"
         android:paddingEnd="8dp"
         android:contentDescription="Weather Image" />
 

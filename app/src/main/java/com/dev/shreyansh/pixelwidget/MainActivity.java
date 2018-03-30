@@ -65,7 +65,7 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "PixelLocationWidget";
-    private static final String degree = (char) 0x00B0+" C";
+    private static final String degree = " "+(char) 0x00B0+"C";
 
     public Location location;
     public LocationManager locationManager;
@@ -141,7 +141,7 @@ public class MainActivity extends AppCompatActivity {
             RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(ActionBar.LayoutParams.WRAP_CONTENT, ActionBar.LayoutParams.WRAP_CONTENT);
             tv.setLayoutParams(lp);
             tv.setText(getString(R.string.app_name));
-            tv.setTextSize(28);
+            tv.setTextSize(22);
             tv.setTextColor(Color.parseColor("#FFFFFF"));
 
             /* Set Custom Font */
@@ -464,7 +464,7 @@ public class MainActivity extends AppCompatActivity {
                     maxTemp.setText(String.valueOf(weather.getMaxTemperature()) + degree);
                     minTemp.setText(String.valueOf(weather.getMinTemperature()) + degree);
                     weatherDesc.setText(Html.fromHtml(" <b>" + weather.getMain() + "</b> - " + StringUtils.capitalize(weather.getDescription())));
-                    humidity.setText(String.valueOf(weather.getHumidity()) + degree);
+                    humidity.setText(String.valueOf(weather.getHumidity()) + "%");
                     wind.setText(String.valueOf(weather.getWindSpeed()) + " m/s");
                     sunrise.setText(weather.getSunrise());
                     sunset.setText(weather.getSunset());

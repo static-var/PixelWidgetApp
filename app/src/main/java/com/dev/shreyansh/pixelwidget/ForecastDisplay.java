@@ -15,7 +15,7 @@ import org.apache.commons.lang3.text.WordUtils;
 
 public class ForecastDisplay extends AppCompatActivity {
     private static final String TAG = "ForecastDisplayClass";
-    private static final String degree = (char) 0x00B0+" C";
+    private static final String degree = " "+(char) 0x00B0+"C";
     private Bundle bundle;
 
     private TextView bigCity;
