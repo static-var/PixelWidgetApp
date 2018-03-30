@@ -8,9 +8,6 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.location.Location;
-import android.location.LocationManager;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -25,9 +22,6 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
-import com.google.android.gms.location.LocationListener;
-import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationServices;
 import com.google.api.client.util.DateTime;
 import com.google.api.services.calendar.model.Event;
 
@@ -53,70 +47,85 @@ public class UpdateWidgetJobService extends JobService {
 
     @Override
     public boolean onStartJob(JobParameters params) {
+
+        /* To give more flexibility to reschedule job, Refer Util#widgetData for more info */
         Util.widgetData(getApplicationContext());
+
         Log.i(TAG,  "JobService - onStartJob()");
-        startWorkOnNewThread(params);
-        return true;
+
+
+        /* Run AsyncTask only if we have access to internet, otherwise they will stack up in the background */
+        if(Util.pingGoogle() && Util.checkNetwork(getApplicationContext()))
+            /*
+             * As JobService runs on Main Thread
+             * So if something goes wrong the app will generate ANR.
+             * Avoid ANR totally by using AsyncTask, as this will shift the work to background thread(s).
+             * Also this will make sure that the wakelock held by the Job is released as soon as possible.
+             * Irrespective of when the AsyncTask is completed.
+             */
+            new DoWork(this).execute();
+
+        /* AsyncTask will happen in background thread(s), we can pass false in that case */
+        return false;
+        /* Now the wakelock will be released */
     }
 
     @Override
     public boolean onStopJob(JobParameters params) {
         Log.i(TAG,"JobService - onStopJob()");
-        jobFinished(params, false);
-        return true;
-    }
 
-    private void startWorkOnNewThread(JobParameters param) {
-        /*
-        *  Avoid ANR errors as JobService runs on Main Thread
-        * So if something goes wrong the app will generate ANR
-        * avoid ANR totally by using AsyncTask, as this will shit the work to background thread(s).
-        */
-        new DoWork().execute(getApplicationContext());
-        jobFinished(param, false);
+        /* We don't need to reschedule the Job, pass false */
+        return false;
     }
 
 
-
-    private static class DoWork extends AsyncTask<Context, Void, Void> {
+    /* AsyncTask to update Widget's data */
+    private static class DoWork extends AsyncTask<Void, Void, Void> {
 
         private Weather weather;
         private JSONObject weatherData;
 
         private GoogleApiClient googleApiClient;
         private Location location;
-        public List<Event> eventList;
+        private List<Event> eventList;
 
         private WeakReference<Context> contextWeakReference;
 
         private boolean eventScheduled = false;
         private boolean overrideDate = false;
-        public static int COUNT = 0;
+        private static int COUNT = 0;
+        
+        private DoWork(Context context) {
+            contextWeakReference = new WeakReference<>(context);
+        }
 
         @Override
-        protected Void doInBackground(Context... params) {
+        protected Void doInBackground(Void... voids) {
             Log.i(TAG, "COUNT : "+COUNT);
-            contextWeakReference = new WeakReference<>(params[0]);
 
-            if (COUNT == 1)
-                doWork();
+            /*
+            * There's a check before we are starting this background task but as this is background thread,
+            * there might be delay in execution from that point in time
+            * So again check for internet again before proceeding.
+            */
 
-            if (COUNT == 9)
-                COUNT = 0;
-            else
-                COUNT++;
+            if(Util.checkNetwork(contextWeakReference.get()) && Util.pingGoogle()) {
+                if (COUNT == 1)
+                    doAllLocationStuff(contextWeakReference.get());
 
-            googleCalendarWork(contextWeakReference.get());
+                if (COUNT == 9)
+                    COUNT = 0;
+                else
+                    COUNT++;
+
+                googleCalendarWork(contextWeakReference.get());
+            }
             return null;
         }
 
-        private void doWork() {
-            doAllLocationStuff(contextWeakReference.get());
-        }
-
         private void doAllLocationStuff(Context context) {
-            if(checkNetwork(context)) {
-                if(pingGoogle()) {
+            if(Util.checkNetwork(context)) {
+                if(Util.pingGoogle()) {
                     if (checkPlayServices(context)) {
                         googleApiClient = new GoogleApiClient.Builder(context)
                                 .addApi(Awareness.API)
@@ -134,8 +143,7 @@ public class UpdateWidgetJobService extends JobService {
                 @Override
                 public void onConnected(@Nullable Bundle bundle) {
                     if (ContextCompat.checkSelfPermission(contextWeakReference.get(), Manifest.permission.ACCESS_FINE_LOCATION)
-                            != PackageManager.PERMISSION_GRANTED) {
-                    } else {
+                            == PackageManager.PERMISSION_GRANTED) {
                         Awareness.SnapshotApi.getLocation(googleApiClient).setResultCallback(new ResultCallback<LocationResult>() {
                             @Override
                             public void onResult(@NonNull LocationResult locationResult) {
@@ -156,20 +164,7 @@ public class UpdateWidgetJobService extends JobService {
             };
         }
 
-        private boolean checkNetwork(Context context) {
-            /* Check the network status */
-            try {
-                ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-                NetworkInfo netInfo = cm.getActiveNetworkInfo();
 
-                //should check null because in airplane mode it will be null
-                return (netInfo != null && netInfo.isConnected());
-            }
-            catch (Exception e) {
-                Log.e(TAG, "Error", e);
-                return false;
-            }
-        }
 
         /* Check if required version of play s is available in device or not */
         @SuppressWarnings("deprecation")
@@ -179,16 +174,6 @@ public class UpdateWidgetJobService extends JobService {
                 return false;
             }
             return true;
-        }
-
-        private boolean pingGoogle() {
-            try {
-                String command = "ping -c 1 google.com";
-                return (Runtime.getRuntime().exec(command).waitFor() == 0);
-            } catch (Exception e) {
-                Log.i(TAG, "Error", e);
-                return false;
-            }
         }
 
         private void fetchData(final Context context, final Location location) {
