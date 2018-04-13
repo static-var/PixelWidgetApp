@@ -585,7 +585,10 @@ public class MainActivity extends AppCompatActivity {
                 refreshUI();
                 return true;
             case R.id.settings:
-                /* Open app settings */
+                Intent goToSettings = new Intent(this, SettingsActivity.class);
+                startActivity(goToSettings);
+                overridePendingTransition(R.anim.enter, R.anim.exit);
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }

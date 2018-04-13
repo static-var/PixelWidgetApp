@@ -8,22 +8,23 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
+    <meta-data
+        android:name="io.fabric.ApiKey"
+        android:value="510cc8df11823140485f30d31b6c57061ce261ba" />
+
     <application
         android:allowBackup="true"
-        android:icon="@mipmap/tstorms"
+        android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/tstorms"
+        android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <meta-data
             android:name="com.google.android.awareness.API_KEY"
             android:value="AIzaSyBojfrAyHg35yp3E4unuwfvca8F0O7Qp5o" />
-
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyBojfrAyHg35yp3E4unuwfvca8F0O7Qp5o" />
-
-
         <meta-data
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
@@ -55,22 +56,21 @@
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </receiver>
 
         <service
             android:name=".UpdateWidgetJobService"
-            android:permission="android.permission.BIND_JOB_SERVICE"
-            android:exported="true"/>
+            android:exported="true"
+            android:permission="android.permission.BIND_JOB_SERVICE" />
 
         <meta-data
             android:name="io.fabric.ApiKey"
             android:value="510cc8df11823140485f30d31b6c57061ce261ba" />
-    </application>
 
-    <meta-data
-        android:name="io.fabric.ApiKey"
-        android:value="510cc8df11823140485f30d31b6c57061ce261ba" />
+        <activity android:name=".SettingsActivity"></activity>
+    </application>
 
 </manifest>
