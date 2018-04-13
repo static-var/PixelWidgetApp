@@ -37,7 +37,7 @@ public class FetchWeatherJSON {
     private HttpClient client;
     private HttpGet httpGet;
     private HttpResponse httpResponse;
-
+    private static int failedAttempts;
 
     /* This constructor should be called once at-least,
      * more importantly it should be called first
@@ -48,6 +48,7 @@ public class FetchWeatherJSON {
         fahrenheit = false;
         weatherURL = String.format(weatherURL,latitude,longitude,OpenWeatherKey.KEY);
         Log.i(TAG,weatherURL);
+        failedAttempts = 0;
     }
 
 
@@ -63,15 +64,13 @@ public class FetchWeatherJSON {
             HttpEntity entity = httpResponse.getEntity();
             data = new JSONObject(EntityUtils.toString(entity));
             return data;
-        } catch (SocketTimeoutException e) {
+        } catch (Exception e) {
             Log.i(TAG, e.toString());
-            return null;
-        } catch (IOException e) {
-            Log.i(TAG, e.toString());
-            return null;
-        } catch (JSONException e) {
-            Log.i(TAG, e.toString());
-            return null;
+            failedAttempts++;
+            if(failedAttempts == 4)
+                return null;
+            data = fetchData();
+            return data;
         }
     }
 

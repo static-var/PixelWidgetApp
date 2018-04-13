@@ -32,6 +32,7 @@ public class FetchAndProcessForecastWeather {
     private String query = "http://api.openweathermap.org/data/2.5/forecast/daily?lat=%s&lon=%s&units=metric&cnt=15&appid=%s";
     private double latitude;
     private double longitude;
+    private static int failedAttempts;
 
     private HttpClient client;
     private HttpGet httpGet;
@@ -60,15 +61,12 @@ public class FetchAndProcessForecastWeather {
             httpResponse = client.execute(httpGet);
             HttpEntity entity = httpResponse.getEntity();
             return new JSONObject(EntityUtils.toString(entity));
-        } catch (SocketTimeoutException e) {
+        } catch (Exception e) {
             Log.i(TAG, e.toString());
-            return null;
-        } catch (IOException e) {
-            Log.i(TAG, e.toString());
-            return null;
-        } catch (JSONException e) {
-            Log.i(TAG, e.toString());
-            return null;
+            failedAttempts++;
+            if(failedAttempts == 4)
+                return null;
+            return fetchData();
         }
     }
 
