@@ -56,4 +56,12 @@
     <!-- Settings String -->
     <string name="settings">Settings</string>
 
+    <!-- Integrate Calendar permission string -->
+    <string name="cal_app">Integrate with Calendar Application</string>
+    <string name="cal_google">Integrate with Google Calendar (Online)</string>
+
+    <!-- Use Fahrenheit String -->
+    <string name="use_fahrenheit">Use Fahrenheit as unit scale</string>
+
+
 </resources>
