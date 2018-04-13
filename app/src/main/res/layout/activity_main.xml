@@ -33,45 +33,19 @@
             android:background="@color/primary"
             app:layout_collapseMode="pin">
 
-            <TextView
-                android:id="@+id/location_disabled"
-                android:visibility="gone"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textColor="@android:color/white"
-                android:gravity="center"
-                android:padding="6dp"
-                android:layout_marginBottom="6dp"
-                android:background="@color/primary_dark"
-                android:text="@string/location_disabled"/>
 
             <TextView
-                android:id="@+id/network_status"
-                android:visibility="gone"
+                android:id="@+id/todays_date"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/no_network"
-                android:textColor="@android:color/white"
-                android:gravity="center"
-                android:padding="6dp"
-                android:layout_marginBottom="6dp"
-                android:background="@color/primary_dark"/>
-
-            <TextView
-                android:id="@+id/city_name"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:text="Today's date"
                 android:gravity="center"
                 android:textColor="@android:color/white"
                 android:layout_marginBottom="8dp"
-                android:layout_marginTop="8dp"
-                android:textSize="38sp" />
+                android:textSize="38sp"/>
 
             <LinearLayout
-                android:layout_marginTop="16dp"
-                android:layout_marginBottom="16dp"
-                android:paddingTop="12dp"
-                android:paddingBottom="12dp"
+                android:layout_marginBottom="8dp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
@@ -91,30 +65,28 @@
                     android:layout_height="match_parent"
                     android:gravity="center"
                     android:textColor="@android:color/white"
-                    android:text="lol"
-                    android:textSize="45dp"
+                    android:textSize="45sp"
                     android:layout_weight="1" />
 
             </LinearLayout>
-
-            <TextView
-                android:id="@+id/todays_date"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Today's date"
-                android:gravity="center"
-                android:textColor="@android:color/white"
-                android:layout_marginBottom="8dp"
-                android:textSize="28dp"/>
 
             <TextView
                 android:id="@+id/weather_desc"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center"
-                android:layout_marginBottom="8dp"
+                android:layout_marginBottom="16dp"
                 android:textSize="28sp"
                 android:textColor="@android:color/white" />
+
+            <TextView
+                android:id="@+id/city_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:textColor="@android:color/white"
+                android:layout_marginBottom="8dp"
+                android:textSize="38sp" />
 
             <LinearLayout
                 android:layout_width="match_parent"

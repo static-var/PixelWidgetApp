@@ -308,7 +308,6 @@ public class MainActivity extends AppCompatActivity {
         boolean network_enabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
 
         if(!(gps_enabled || network_enabled)) {
-            locationDisabled.setVisibility(View.VISIBLE);
             final AlertDialog builder = new AlertDialog.Builder(this, R.style.AlertDialogStyle)
                     .setCancelable(false)
                     .setTitle("Locations are disabled")
@@ -331,12 +330,6 @@ public class MainActivity extends AppCompatActivity {
             return false;
 
         } else {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    locationDisabled.setVisibility(View.INVISIBLE);
-                }
-            });
 
             return true;
         }
@@ -377,7 +370,6 @@ public class MainActivity extends AppCompatActivity {
         currentDateTV = findViewById(R.id.todays_date);
         currentBigTemp = findViewById(R.id.current_big_temp);
         currentCity = findViewById(R.id.city_name);
-        networkStatus = findViewById(R.id.network_status);
         maxTemp = findViewById(R.id.max_temp);
         minTemp = findViewById(R.id.min_temp);
         weatherDesc = findViewById(R.id.weather_desc);
@@ -388,7 +380,6 @@ public class MainActivity extends AppCompatActivity {
         weatherImage = findViewById(R.id.current_weather_image);
         hero = findViewById(R.id.hero_layout);
         recyclerView = findViewById(R.id.recyclerView);
-        locationDisabled = findViewById(R.id.location_disabled);
     }
 
     /* Function to set Current Day and date in UI */
@@ -530,12 +521,6 @@ public class MainActivity extends AppCompatActivity {
         try {
             ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
             NetworkInfo netInfo = cm.getActiveNetworkInfo();
-            if (!(netInfo != null && netInfo.isConnected())) {
-                networkStatus.setVisibility(View.VISIBLE);
-            }
-            else {
-                networkStatus.setVisibility(View.GONE);
-            }
 
             //should check null because in airplane mode it will be null
             return (netInfo != null && netInfo.isConnected());
