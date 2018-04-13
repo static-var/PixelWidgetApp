@@ -427,16 +427,10 @@ public class MainActivity extends AppCompatActivity {
         if (location != null) {
             try {
                 /* Get weather data  */
-                if(progressDialog.isShowing())
-                    progressDialog.dismiss();
                 if(hero.getVisibility()!=View.VISIBLE)
                     hero.setVisibility(View.VISIBLE);
                 if(recyclerView.getVisibility()!=View.VISIBLE)
                     recyclerView.setVisibility(View.VISIBLE);
-                Animation fadeIn = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fade_in);
-                hero.startAnimation(fadeIn);
-                progressDialog.setTitle("Loading Data");
-                progressDialog.setMessage("Fetching location and weather details.");
                 weatherData = new FetchAsync().execute(location.getLatitude(), location.getLongitude()).get();
                 weather = new Weather(weatherData);
                 forecastData = new FetchAsyncForecast().execute(location.getLatitude(), location.getLongitude()).get();
@@ -470,6 +464,10 @@ public class MainActivity extends AppCompatActivity {
                     sunset.setText(weather.getSunset());
                     weatherImage.setImageResource(returnImageRes(weather.getDescription(), weather.getIsDayTime()));
                     googleApiClient.disconnect();
+                    if(progressDialog.isShowing())
+                        progressDialog.dismiss();
+                    Animation fadeIn = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fade_in);
+                    hero.startAnimation(fadeIn);
                 } else {
                     final AlertDialog builder = new AlertDialog.Builder(this, R.style.AlertDialogStyle)
                             .setCancelable(false)
@@ -614,7 +612,7 @@ public class MainActivity extends AppCompatActivity {
         progressDialog.show();
 
         new Thread() {
-            public synchronized void run() {
+            public void run() {
                 Looper.prepare();
                 if(pingGoogle()) {
                     /* Fetch Location */
