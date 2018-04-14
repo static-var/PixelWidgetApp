@@ -1,4 +1,4 @@
-package com.dev.shreyansh.pixelwidget;
+package com.dev.shreyansh.pixelwidget.UI;
 
 import android.R.*;
 import android.content.Intent;
@@ -7,6 +7,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.widget.CompoundButton;
 import android.widget.Switch;
+
+import com.dev.shreyansh.pixelwidget.R;
 
 public class SettingsActivity extends AppCompatActivity {
     private SharedPreferences sp;

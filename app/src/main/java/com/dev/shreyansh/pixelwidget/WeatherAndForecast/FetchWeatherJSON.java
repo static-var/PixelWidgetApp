@@ -1,7 +1,9 @@
-package com.dev.shreyansh.pixelwidget;
+package com.dev.shreyansh.pixelwidget.WeatherAndForecast;
 
 import android.content.Context;
 import android.util.Log;
+
+import com.dev.shreyansh.pixelwidget.Keys.OpenWeatherKey;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -12,12 +14,7 @@ import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.util.EntityUtils;
-import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.io.IOException;
-import java.net.SocketException;
-import java.net.SocketTimeoutException;
 
 /**
  * Created by shreyansh on 2/14/18.
@@ -46,7 +43,7 @@ public class FetchWeatherJSON {
         this.latitude = latitude;
         this.longitude = longitude;
         fahrenheit = false;
-        weatherURL = String.format(weatherURL,latitude,longitude,OpenWeatherKey.KEY);
+        weatherURL = String.format(weatherURL,latitude,longitude, OpenWeatherKey.KEY);
         Log.i(TAG,weatherURL);
         failedAttempts = 0;
     }

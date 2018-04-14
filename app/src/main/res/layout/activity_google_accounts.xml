@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/primary"
-    tools:context="com.dev.shreyansh.pixelwidget.GoogleAccountsActivity">
+    tools:context="com.dev.shreyansh.pixelwidget.UI.GoogleAccountsActivity">
 
     <RelativeLayout
         android:layout_width="match_parent"

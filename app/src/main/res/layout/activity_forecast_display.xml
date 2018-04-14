@@ -7,7 +7,7 @@
     android:background="@color/primary"
     android:weightSum="15"
     android:orientation="vertical"
-    tools:context="com.dev.shreyansh.pixelwidget.ForecastDisplay">
+    tools:context="com.dev.shreyansh.pixelwidget.UI.ForecastDisplay">
 
     <TextView
         android:id="@+id/big_city"

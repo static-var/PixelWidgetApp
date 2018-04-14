@@ -1,10 +1,8 @@
-package com.dev.shreyansh.pixelwidget;
+package com.dev.shreyansh.pixelwidget.WeatherAndForecast;
 
 import android.os.AsyncTask;
 
 import org.json.JSONObject;
-
-import java.util.List;
 
 /**
  * Created by shreyansh on 3/4/18.

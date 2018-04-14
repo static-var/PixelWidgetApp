@@ -1,11 +1,9 @@
-package com.dev.shreyansh.pixelwidget;
+package com.dev.shreyansh.pixelwidget.Util;
 
 import android.accounts.Account;
-import android.content.ComponentName;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
-import android.widget.RemoteViews;
 
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.api.client.extensions.android.http.AndroidHttp;
@@ -17,7 +15,6 @@ import com.google.api.client.util.DateTime;
 import com.google.api.services.calendar.model.Event;
 import com.google.api.services.calendar.model.Events;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 

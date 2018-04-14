@@ -1,37 +1,29 @@
-package com.dev.shreyansh.pixelwidget;
+package com.dev.shreyansh.pixelwidget.UI;
 
 import android.Manifest;
-import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.PendingIntent;
-import android.app.WallpaperColors;
-import android.app.WallpaperManager;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
 import android.content.ComponentName;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.os.Build;
 import android.os.Bundle;
-import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
-import android.view.View;
 import android.widget.RemoteViews;
-import android.widget.TextView;
-import android.widget.Toast;
 
 import org.json.JSONObject;
 
+import com.dev.shreyansh.pixelwidget.R;
+import com.dev.shreyansh.pixelwidget.WeatherAndForecast.FetchAsync;
+import com.dev.shreyansh.pixelwidget.WeatherAndForecast.Weather;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -40,8 +32,6 @@ import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnSuccessListener;
-
-import junit.runner.Version;
 
 import java.text.SimpleDateFormat;
 

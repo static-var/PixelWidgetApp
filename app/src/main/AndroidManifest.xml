@@ -29,9 +29,9 @@
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
 
-        <activity android:name=".MainActivity"/>
+        <activity android:name=".UI.MainActivity"/>
 
-        <receiver android:name=".PixelLikeWidget">
+        <receiver android:name=".UI.PixelLikeWidget">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
@@ -42,11 +42,11 @@
         </receiver>
 
         <activity
-            android:name=".ForecastDisplay"
-            android:parentActivityName=".MainActivity" />
-        <activity android:name=".GoogleAccountsActivity" />
+            android:name=".UI.ForecastDisplay"
+            android:parentActivityName=".UI.MainActivity" />
+        <activity android:name=".UI.GoogleAccountsActivity" />
 
-        <receiver android:name=".OnBootBroadcast">
+        <receiver android:name=".Util.OnBootBroadcast">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <action android:name="android.intent.action.QUICKBOOT_POWERON" />
@@ -56,7 +56,7 @@
         </receiver>
 
         <service
-            android:name=".UpdateWidgetJobService"
+            android:name=".Util.UpdateWidgetJobService"
             android:exported="true"
             android:permission="android.permission.BIND_JOB_SERVICE" />
 
@@ -64,8 +64,8 @@
             android:name="io.fabric.ApiKey"
             android:value="510cc8df11823140485f30d31b6c57061ce261ba" />
 
-        <activity android:name=".SettingsActivity" />
-        <activity android:name=".SplashActivity" android:theme="@style/SplashTheme">
+        <activity android:name=".UI.SettingsActivity" />
+        <activity android:name=".UI.SplashActivity" android:theme="@style/SplashTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

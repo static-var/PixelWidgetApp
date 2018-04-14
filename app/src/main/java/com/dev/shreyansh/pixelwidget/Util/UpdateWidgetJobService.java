@@ -1,4 +1,4 @@
-package com.dev.shreyansh.pixelwidget;
+package com.dev.shreyansh.pixelwidget.Util;
 
 import android.Manifest;
 import android.app.job.JobParameters;
@@ -16,6 +16,10 @@ import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.widget.RemoteViews;
 
+import com.dev.shreyansh.pixelwidget.UI.PixelLikeWidget;
+import com.dev.shreyansh.pixelwidget.R;
+import com.dev.shreyansh.pixelwidget.WeatherAndForecast.FetchAsync;
+import com.dev.shreyansh.pixelwidget.WeatherAndForecast.Weather;
 import com.google.android.gms.awareness.Awareness;
 import com.google.android.gms.awareness.snapshot.LocationResult;
 import com.google.android.gms.common.ConnectionResult;

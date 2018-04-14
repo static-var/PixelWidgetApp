@@ -1,4 +1,4 @@
-package com.dev.shreyansh.pixelwidget;
+package com.dev.shreyansh.pixelwidget.UI;
 
 import android.Manifest;
 import android.app.ActionBar;
@@ -44,6 +44,15 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.crashlytics.android.Crashlytics;
+import com.dev.shreyansh.pixelwidget.R;
+import com.dev.shreyansh.pixelwidget.Util.DividerItemDecoration;
+import com.dev.shreyansh.pixelwidget.Util.Util;
+import com.dev.shreyansh.pixelwidget.WeatherAndForecast.FetchAndProcessForecastWeather;
+import com.dev.shreyansh.pixelwidget.WeatherAndForecast.FetchAsync;
+import com.dev.shreyansh.pixelwidget.WeatherAndForecast.FetchAsyncForecast;
+import com.dev.shreyansh.pixelwidget.WeatherAndForecast.ForecastAdapter;
+import com.dev.shreyansh.pixelwidget.WeatherAndForecast.ForecastSingleDayWeather;
+import com.dev.shreyansh.pixelwidget.WeatherAndForecast.Weather;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.awareness.Awareness;

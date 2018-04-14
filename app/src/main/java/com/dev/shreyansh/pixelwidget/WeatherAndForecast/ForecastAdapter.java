@@ -1,16 +1,18 @@
-package com.dev.shreyansh.pixelwidget;
+package com.dev.shreyansh.pixelwidget.WeatherAndForecast;
 
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.widget.RecyclerView;
 import android.text.Html;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import com.dev.shreyansh.pixelwidget.UI.ForecastDisplay;
+import com.dev.shreyansh.pixelwidget.R;
 
 import java.util.List;
 

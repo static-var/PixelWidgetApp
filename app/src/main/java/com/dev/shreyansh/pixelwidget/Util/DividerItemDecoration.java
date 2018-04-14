@@ -1,4 +1,4 @@
-package com.dev.shreyansh.pixelwidget;
+package com.dev.shreyansh.pixelwidget.Util;
 
 import android.content.Context;
 import android.content.res.TypedArray;

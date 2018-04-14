@@ -1,4 +1,4 @@
-package com.dev.shreyansh.pixelwidget;
+package com.dev.shreyansh.pixelwidget.Util;
 
 import android.app.job.JobInfo;
 import android.app.job.JobScheduler;
@@ -7,7 +7,6 @@ import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Build;
-import android.os.PersistableBundle;
 import android.util.Log;
 
 /**

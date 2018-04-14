@@ -1,4 +1,4 @@
-package com.dev.shreyansh.pixelwidget;
+package com.dev.shreyansh.pixelwidget.WeatherAndForecast;
 
 import android.util.Log;
 
