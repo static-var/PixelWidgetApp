@@ -1,3 +1,20 @@
+/*
+ * Copyright (C) 2017-2018 Shreyansh Lodha <slodha96@gmail.com>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PixelWidget.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package com.dev.shreyansh.pixelwidget.UI;
 
 import android.Manifest;
@@ -56,15 +73,24 @@ import com.dev.shreyansh.pixelwidget.WeatherAndForecast.Weather;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.awareness.Awareness;
+import com.google.android.gms.awareness.snapshot.LocationResponse;
 import com.google.android.gms.awareness.snapshot.LocationResult;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Scope;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.api.services.calendar.CalendarScopes;
 
 import io.fabric.sdk.android.Fabric;
+
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
 
@@ -74,10 +100,15 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "PixelLocationWidget";
-    private static final String degree = " "+(char) 0x00B0+"C";
+    private static final String degree = " " + (char) 0x00B0 + "C";
+    private static final int UPDATE_DURATION = 10000;
+    private static final int DISPLACEMENT = 10;
+    private static final int FASTEST_UPDATE = 1000;
 
-    public Location location;
-    public LocationManager locationManager;
+    private Location location;
+    private LocationManager locationManager;
+    private LocationListener locationListener;
+
 
     private final int PERMISSION_ACCESS_FINE_LOCATION = 0;
     private final int PERMISSION_ACCESS_COARSE_LOCATION = 1;
@@ -109,7 +140,7 @@ public class MainActivity extends AppCompatActivity {
 
     /* Google API Client */
     private GoogleApiClient googleApiClient;
-    private final static int PLAY_SERVICES_RESOLUTION_REQUEST = 1000;
+    private LocationRequest locationRequest;
 
     /* Forecast data */
     private List<ForecastSingleDayWeather> forecastSingleDayWeathers;
@@ -140,7 +171,7 @@ public class MainActivity extends AppCompatActivity {
         if (GoogleSignIn.hasPermissions(
                 GoogleSignIn.getLastSignedInAccount(this), new Scope(CalendarScopes.CALENDAR)))
             account = GoogleSignIn.getLastSignedInAccount(this);
-        if(account != null) {
+        if (account != null) {
             Util.widgetData(getApplicationContext());
         }
 
@@ -180,7 +211,7 @@ public class MainActivity extends AppCompatActivity {
              * then just use setTitle and
              * screw TypeFace in that case
              */
-            Log.e(TAG,e.toString());
+            Log.e(TAG, e.toString());
             this.getSupportActionBar().setTitle("Pixel Weather");
         }
 
@@ -192,51 +223,50 @@ public class MainActivity extends AppCompatActivity {
         /* Request for location access if we don't have access already */
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[] { Manifest.permission.ACCESS_FINE_LOCATION },
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
                     PERMISSION_ACCESS_FINE_LOCATION);
-            ActivityCompat.requestPermissions(this, new String[] { Manifest.permission.ACCESS_COARSE_LOCATION },
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
                     PERMISSION_ACCESS_COARSE_LOCATION);
         } else {
             try {
                 if (checkNetwork()) {
-                    if (checkPlayServices()) {
-                        progressDialog.setIndeterminate(false);
-                        progressDialog.setTitle("Loading...");
-                        progressDialog.setMessage("Featching location and weather details...");
-                        progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-                        progressDialog.setCancelable(false);
-                        progressDialog.show();
-                        new Handler().postDelayed(new Runnable() {
-                            @Override
-                            public void run() {
-                                if(pingGoogle()) {
-                                    /* Fetch Location */
-                                    apiClientWork();
-                                } else {
-                                    progressDialog.dismiss();
-                                    final AlertDialog builder = new AlertDialog.Builder(context, R.style.AlertDialogStyle)
-                                            .setCancelable(false)
-                                            .setTitle("Network TimeOut")
-                                            .setMessage("We are unable to connect to the servers. Please check your internet.")
-                                            .setNegativeButton("Exit", new DialogInterface.OnClickListener() {
-                                                @Override
-                                                public void onClick(DialogInterface dialog, int which) {
-                                                    finish();
-                                                }
-                                            })
-                                            .setPositiveButton("Retry", new DialogInterface.OnClickListener() {
-                                                @Override
-                                                public void onClick(DialogInterface dialog, int which) {
-                                                    refreshUI();
-                                                }
-                                            })
-                                            .show();
-                                    builder.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(getResources().getColor(R.color.colorAccent));
-                                    builder.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(getResources().getColor(R.color.colorAccent));
-                                }
+                    progressDialog.setIndeterminate(false);
+                    progressDialog.setTitle("Loading...");
+                    progressDialog.setMessage("Featching location and weather details...");
+                    progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+                    progressDialog.setCancelable(false);
+                    progressDialog.show();
+                    new Handler().postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (pingGoogle()) {
+                                /* Fetch Location */
+                                prepareGoogleApiClient();
+                                Log.i(TAG, "Requested Location, awaiting response");
+                            } else {
+                                progressDialog.dismiss();
+                                final AlertDialog builder = new AlertDialog.Builder(context, R.style.AlertDialogStyle)
+                                        .setCancelable(false)
+                                        .setTitle("Network TimeOut")
+                                        .setMessage("We are unable to connect to the servers. Please check your internet.")
+                                        .setNegativeButton("Exit", new DialogInterface.OnClickListener() {
+                                            @Override
+                                            public void onClick(DialogInterface dialog, int which) {
+                                                finish();
+                                            }
+                                        })
+                                        .setPositiveButton("Retry", new DialogInterface.OnClickListener() {
+                                            @Override
+                                            public void onClick(DialogInterface dialog, int which) {
+                                                refreshUI();
+                                            }
+                                        })
+                                        .show();
+                                builder.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(getResources().getColor(R.color.colorAccent));
+                                builder.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(getResources().getColor(R.color.colorAccent));
                             }
-                        },500);
-                    }
+                        }
+                    }, 500);
                 } else {
                     final AlertDialog builder = new AlertDialog.Builder(this, R.style.AlertDialogStyle)
                             .setCancelable(false)
@@ -259,7 +289,7 @@ public class MainActivity extends AppCompatActivity {
                     builder.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(getResources().getColor(R.color.colorAccent));
                 }
             } catch (Exception r) {
-                Log.e(TAG, "Error",r);
+                Log.e(TAG, "Error", r);
             }
 
         }
@@ -271,13 +301,13 @@ public class MainActivity extends AppCompatActivity {
         switch (requestCode) {
             case PERMISSION_ACCESS_FINE_LOCATION:
             case PERMISSION_ACCESS_COARSE_LOCATION:
-                for(int a : grantResults){
-                    Log.i(TAG,String.valueOf(a));
+                for (int a : grantResults) {
+                    Log.i(TAG, String.valueOf(a));
                 }
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     /* Restart the app. */
                     Intent i = getBaseContext().getPackageManager()
-                            .getLaunchIntentForPackage( getBaseContext().getPackageName() );
+                            .getLaunchIntentForPackage(getBaseContext().getPackageName());
                     i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                     startActivity(i);
                 } else {
@@ -316,7 +346,7 @@ public class MainActivity extends AppCompatActivity {
         boolean gps_enabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
         boolean network_enabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
 
-        if(!(gps_enabled || network_enabled)) {
+        if (!(gps_enabled || network_enabled)) {
             final AlertDialog builder = new AlertDialog.Builder(this, R.style.AlertDialogStyle)
                     .setCancelable(false)
                     .setTitle("Locations are disabled")
@@ -341,36 +371,6 @@ public class MainActivity extends AppCompatActivity {
         } else {
 
             return true;
-        }
-    }
-
-    /* Update the changed location and UI with it */
-    public void setLocation(Location newLocation) {
-        if(checkNetwork()) {
-            if (newLocation.getLongitude() != location.getLongitude() && newLocation.getLatitude() != location.getLatitude()) {
-                location = newLocation;
-                writeDataToUI();
-            }
-        } else {
-            final AlertDialog builder = new AlertDialog.Builder(this, R.style.AlertDialogStyle)
-                    .setCancelable(false)
-                    .setTitle("No Internet detected.")
-                    .setMessage("Enable internet to use the app.")
-                    .setPositiveButton("GO TO SETTINGS", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            Intent settings = new Intent(Settings.ACTION_WIRELESS_SETTINGS);
-                            startActivityForResult(settings, 2);
-                        }
-                    })
-                    .setNegativeButton("EXIT", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            finish();
-                        }
-                    }).show();
-            builder.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(getResources().getColor(R.color.colorAccent));
-            builder.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(getResources().getColor(R.color.colorAccent));
         }
     }
 
@@ -402,41 +402,22 @@ public class MainActivity extends AppCompatActivity {
         currentDateTV.setText(Html.fromHtml(currentDate));
     }
 
-    /* Check if required version of play services is available in device or not */
-    @SuppressWarnings("deprecation")
-    private boolean checkPlayServices() {
-        int resultCode = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this);
-        if(resultCode != ConnectionResult.SUCCESS){
-            if (GooglePlayServicesUtil.isUserRecoverableError(resultCode)) {
-                GooglePlayServicesUtil.getErrorDialog(resultCode, this,
-                        PLAY_SERVICES_RESOLUTION_REQUEST).show();
-            } else {
-                Toast.makeText(this,
-                        "This device is not supported.", Toast.LENGTH_LONG)
-                        .show();
-                finish();
-            }
-            return false;
-        }
-        return true;
-    }
-
 
     /* Write Weather Data to UI */
-    public synchronized void writeDataToUI(){
+    public synchronized void writeDataToUI() {
         if (location != null) {
             try {
                 /* Get weather data  */
-                if(hero.getVisibility()!=View.VISIBLE)
+                if (hero.getVisibility() != View.VISIBLE)
                     hero.setVisibility(View.VISIBLE);
-                if(recyclerView.getVisibility()!=View.VISIBLE)
+                if (recyclerView.getVisibility() != View.VISIBLE)
                     recyclerView.setVisibility(View.VISIBLE);
                 weatherData = new FetchAsync().execute(location.getLatitude(), location.getLongitude()).get();
                 weather = new Weather(weatherData);
                 forecastData = new FetchAsyncForecast().execute(location.getLatitude(), location.getLongitude()).get();
                 FetchAndProcessForecastWeather dummy = new FetchAndProcessForecastWeather();
                 forecastSingleDayWeathers = dummy.processData(forecastData);
-                if (forecastData != null || weatherData != null || forecastSingleDayWeathers.size()!=0 ) {
+                if (forecastData != null || weatherData != null || forecastSingleDayWeathers.size() != 0) {
 
                     Log.i(TAG, String.valueOf(forecastSingleDayWeathers.size()));
                     forecastAdapter = new ForecastAdapter(forecastSingleDayWeathers, (Activity) context);
@@ -463,8 +444,11 @@ public class MainActivity extends AppCompatActivity {
                     sunrise.setText(weather.getSunrise());
                     sunset.setText(weather.getSunset());
                     weatherImage.setImageResource(returnImageRes(weather.getDescription(), weather.getIsDayTime()));
-                    googleApiClient.disconnect();
-                    if(progressDialog.isShowing())
+                    if(googleApiClient.isConnected()) {
+                        LocationServices.FusedLocationApi.removeLocationUpdates(googleApiClient, locationListener);
+                        googleApiClient.disconnect();
+                    }
+                    if (progressDialog.isShowing())
                         progressDialog.dismiss();
                     Animation fadeIn = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fade_in);
                     hero.startAnimation(fadeIn);
@@ -482,45 +466,66 @@ public class MainActivity extends AppCompatActivity {
                             .show();
                     builder.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(getResources().getColor(R.color.colorAccent));
                 }
-            }
-            catch (Exception e) {
+                if(googleApiClient.isConnected()) {
+                    LocationServices.FusedLocationApi.removeLocationUpdates(googleApiClient, locationListener);
+                    googleApiClient.disconnect();
+                }
+            } catch (Exception e) {
                 Log.e(TAG, e.toString());
             }
         }
     }
 
     public int returnImageRes(String weather, boolean isStillDay) {
-        if(isStillDay) {
+        if (isStillDay) {
             switch (weather.toLowerCase().trim()) {
                 case "clear sky":
-                case "sky is clear": return R.drawable.danieledesantis_weather_icons_sunny;
-                case "few clouds":return R.drawable.danieledesantis_weather_icons_cloudy;
-                case "scattered clouds": return R.drawable.danieledesantis_weather_icons_cloudy_two;
-                case "broken clouds" : return R.drawable.danieledesantis_weather_icons_cloudy_three;
+                case "sky is clear":
+                    return R.drawable.danieledesantis_weather_icons_sunny;
+                case "few clouds":
+                    return R.drawable.danieledesantis_weather_icons_cloudy;
+                case "scattered clouds":
+                    return R.drawable.danieledesantis_weather_icons_cloudy_two;
+                case "broken clouds":
+                    return R.drawable.danieledesantis_weather_icons_cloudy_three;
                 case "shower rain":
-                case "moderate rain": return R.drawable.danieledesantis_weather_icons_rainy_two;
+                case "moderate rain":
+                    return R.drawable.danieledesantis_weather_icons_rainy_two;
                 case "rain":
-                case "light rain": return R.drawable.danieledesantis_weather_icons_rainy;
+                case "light rain":
+                    return R.drawable.danieledesantis_weather_icons_rainy;
                 case "thunderstorm":
-                case "heavy intensity rain":return R.drawable.danieledesantis_weather_icons_stormy;
-                case "snow": return R.drawable.danieledesantis_weather_icons_snowy;
-                default: return R.drawable.danieledesantis_weather_icons_cloudy;
+                case "heavy intensity rain":
+                    return R.drawable.danieledesantis_weather_icons_stormy;
+                case "snow":
+                    return R.drawable.danieledesantis_weather_icons_snowy;
+                default:
+                    return R.drawable.danieledesantis_weather_icons_cloudy;
             }
         } else {
             switch (weather.toLowerCase().trim()) {
                 case "clear sky":
-                case "sky is clear": return R.drawable.danieledesantis_weather_icons_night_clear;
-                case "few clouds":return R.drawable.danieledesantis_weather_icons_night_cloudy;
-                case "scattered clouds": return R.drawable.danieledesantis_weather_icons_night_cloudy_two;
-                case "broken clouds" : return R.drawable.danieledesantis_weather_icons_night_cloudy_three;
+                case "sky is clear":
+                    return R.drawable.danieledesantis_weather_icons_night_clear;
+                case "few clouds":
+                    return R.drawable.danieledesantis_weather_icons_night_cloudy;
+                case "scattered clouds":
+                    return R.drawable.danieledesantis_weather_icons_night_cloudy_two;
+                case "broken clouds":
+                    return R.drawable.danieledesantis_weather_icons_night_cloudy_three;
                 case "shower rain":
-                case "moderate rain": return R.drawable.danieledesantis_weather_icons_night_rainy_two;
+                case "moderate rain":
+                    return R.drawable.danieledesantis_weather_icons_night_rainy_two;
                 case "rain":
-                case "light rain": return R.drawable.danieledesantis_weather_icons_night_rainy;
+                case "light rain":
+                    return R.drawable.danieledesantis_weather_icons_night_rainy;
                 case "thunderstorm":
-                case "heavy intensity rain": return R.drawable.danieledesantis_weather_icons_night_stormy;
-                case "snow": return R.drawable.danieledesantis_weather_icons_night_snowy;
-                default: return R.drawable.danieledesantis_weather_icons_night_cloudy;
+                case "heavy intensity rain":
+                    return R.drawable.danieledesantis_weather_icons_night_stormy;
+                case "snow":
+                    return R.drawable.danieledesantis_weather_icons_night_snowy;
+                default:
+                    return R.drawable.danieledesantis_weather_icons_night_cloudy;
             }
         }
     }
@@ -533,8 +538,7 @@ public class MainActivity extends AppCompatActivity {
 
             //should check null because in airplane mode it will be null
             return (netInfo != null && netInfo.isConnected());
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             Log.e(TAG, e.toString());
             return false;
         }
@@ -542,11 +546,11 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if(requestCode == 2) {
+        if (requestCode == 2) {
             Intent i = getBaseContext().getPackageManager()
-                    .getLaunchIntentForPackage( getBaseContext().getPackageName() );
+                    .getLaunchIntentForPackage(getBaseContext().getPackageName());
 
-            if(progressDialog.isShowing())
+            if (progressDialog.isShowing())
                 progressDialog.dismiss();
 
             i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -608,15 +612,16 @@ public class MainActivity extends AppCompatActivity {
         new Thread() {
             public void run() {
                 Looper.prepare();
-                if(pingGoogle()) {
+                if (pingGoogle()) {
                     /* Fetch Location */
                     try {
                         Thread.sleep(500);
                     } catch (InterruptedException e) {
                         Log.e(TAG, e.toString());
                     }
-                    if(locationUserspaceHandler()) {
-                        apiClientWork();
+                    if (locationUserspaceHandler()) {
+                        prepareGoogleApiClient();
+                        Log.i(TAG, "Requested Location, awaiting response");
                     }
 
                 } else {
@@ -645,16 +650,6 @@ public class MainActivity extends AppCompatActivity {
         }.start();
     }
 
-    private synchronized void apiClientWork() {
-        if(checkPlayServices()) {
-            googleApiClient = new GoogleApiClient.Builder(context)
-                    .addApi(Awareness.API)
-                    .addConnectionCallbacks(connectionCallbacks())
-                    .build();
-            googleApiClient.connect();
-        }
-    }
-
     @SuppressWarnings("deprecation")
     private GoogleApiClient.ConnectionCallbacks connectionCallbacks() {
         return new GoogleApiClient.ConnectionCallbacks() {
@@ -664,23 +659,84 @@ public class MainActivity extends AppCompatActivity {
                         != PackageManager.PERMISSION_GRANTED) {
                     return;
                 } else {
-                    Awareness.SnapshotApi.getLocation(googleApiClient).setResultCallback(new ResultCallback<LocationResult>() {
-                        @Override
-                        public void onResult(@NonNull LocationResult locationResult) {
-                            if (locationResult.getStatus().isSuccess()) {
-                                location = locationResult.getLocation();
-                                Log.i(TAG, location.getLatitude() + "");
-                                writeDataToUI();
-                            }
-                        }
-                    });
+                    Log.i(TAG, "Connected!");
+                    LocationServices.FusedLocationApi.requestLocationUpdates(googleApiClient, locationRequest, locationListener);
+                    location = LocationServices.FusedLocationApi.getLastLocation(googleApiClient);
+                    if (location == null) {
+                        LocationServices.FusedLocationApi.requestLocationUpdates(googleApiClient, locationRequest, locationListener);
+                    } else {
+                        Log.i("---", String.valueOf(location.getLatitude())+","+location.getLongitude());
+                        writeDataToUI();
+                    }
                 }
             }
 
             @Override
             public void onConnectionSuspended(int i) {
-
+                Log.i(TAG, "Connection Suspended.");
             }
         };
     }
+
+    /* This will let us know if connection fails and we can request to connect again */
+    private GoogleApiClient.OnConnectionFailedListener connectionFailedListener() {
+        return new GoogleApiClient.OnConnectionFailedListener() {
+            @Override
+            public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+                Log.i(TAG, "Connection Failed");
+                if (googleApiClient.isConnected() || googleApiClient.isConnecting())
+                    googleApiClient.disconnect();
+                googleApiClient.connect();
+            }
+        };
+    }
+
+    private void prepareGoogleApiClient() {
+        googleApiClient = new GoogleApiClient.Builder(context, connectionCallbacks(), connectionFailedListener())
+                .addApi(LocationServices.API)
+                .build();
+        googleApiClient.connect();
+
+        try {
+            locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+
+            if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+                locationRequest = LocationRequest.create()
+                        .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
+                        .setInterval(UPDATE_DURATION)
+                        .setFastestInterval(FASTEST_UPDATE)
+                        .setSmallestDisplacement(DISPLACEMENT);
+            } else {
+                locationRequest = LocationRequest.create()
+                        .setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY)
+                        .setInterval(UPDATE_DURATION)
+                        .setFastestInterval(FASTEST_UPDATE)
+                        .setSmallestDisplacement(DISPLACEMENT);
+            }
+        } catch (Exception e) {
+            Log.i(TAG, "Airplane Mode");
+            /* Phone is in airplane mode when location manager returns null */
+        }
+
+        locationListener = new LocationListener() {
+            @Override
+            public void onLocationChanged(Location newLocation) {
+                try {
+                    location = newLocation;
+                    Log.i("onLocationChanged", String.valueOf(location.getLatitude())+","+location.getLongitude());
+                    writeDataToUI();
+                } catch (Exception e) {
+                    //
+                }
+            }
+        };
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        /* Check if location is still available */
+        locationUserspaceHandler();
+    }
+
 }
