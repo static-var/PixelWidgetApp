@@ -8,6 +8,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -26,6 +27,9 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
 import com.google.api.client.util.DateTime;
 import com.google.api.services.calendar.model.Event;
 
@@ -85,13 +89,19 @@ public class UpdateWidgetJobService extends JobService {
 
     /* AsyncTask to update Widget's data */
     private static class DoWork extends AsyncTask<Void, Void, Void> {
+        private static final int UPDATE_DURATION = 10000;
+        private static final int DISPLACEMENT = 10;
+        private static final int FASTEST_UPDATE = 1000;
 
         private Weather weather;
         private JSONObject weatherData;
 
         private GoogleApiClient googleApiClient;
         private Location location;
+        private LocationManager locationManager;
+        private LocationListener locationListener;
         private List<Event> eventList;
+        private LocationRequest locationRequest;
 
         private WeakReference<Context> contextWeakReference;
 
@@ -130,13 +140,7 @@ public class UpdateWidgetJobService extends JobService {
         private void doAllLocationStuff(Context context) {
             if(Util.checkNetwork(context)) {
                 if(Util.pingGoogle()) {
-                    if (checkPlayServices(context)) {
-                        googleApiClient = new GoogleApiClient.Builder(context)
-                                .addApi(Awareness.API)
-                                .addConnectionCallbacks(connectionCallbacks())
-                                .build();
-                        googleApiClient.connect();
-                    }
+                    prepareGoogleApiClient();
                 }
             }
         }
@@ -148,16 +152,14 @@ public class UpdateWidgetJobService extends JobService {
                 public void onConnected(@Nullable Bundle bundle) {
                     if (ContextCompat.checkSelfPermission(contextWeakReference.get(), Manifest.permission.ACCESS_FINE_LOCATION)
                             == PackageManager.PERMISSION_GRANTED) {
-                        Awareness.SnapshotApi.getLocation(googleApiClient).setResultCallback(new ResultCallback<LocationResult>() {
-                            @Override
-                            public void onResult(@NonNull LocationResult locationResult) {
-                                if (locationResult.getStatus().isSuccess()) {
-                                    location = locationResult.getLocation();
-                                    Log.i(TAG, location.getLatitude() + "");
-                                    fetchData(contextWeakReference.get(), location);
-                                }
-                            }
-                        });
+                        LocationServices.FusedLocationApi.requestLocationUpdates(googleApiClient, locationRequest, locationListener);
+                        location = LocationServices.FusedLocationApi.getLastLocation(googleApiClient);
+                        if (location == null) {
+                            LocationServices.FusedLocationApi.requestLocationUpdates(googleApiClient, locationRequest, locationListener);
+                        } else {
+                            Log.i("---", String.valueOf(location.getLatitude())+","+location.getLongitude());
+                            fetchData(contextWeakReference.get(), location);
+                        }
                     }
                 }
 
@@ -166,18 +168,6 @@ public class UpdateWidgetJobService extends JobService {
 
                 }
             };
-        }
-
-
-
-        /* Check if required version of play s is available in device or not */
-        @SuppressWarnings("deprecation")
-        private boolean checkPlayServices(Context context) {
-            int resultCode = GooglePlayServicesUtil.isGooglePlayServicesAvailable(context);
-            if(resultCode != ConnectionResult.SUCCESS){
-                return false;
-            }
-            return true;
         }
 
         private void fetchData(final Context context, final Location location) {
@@ -248,6 +238,7 @@ public class UpdateWidgetJobService extends JobService {
             views.setImageViewResource(R.id.weather_icon, returnImageRes(weather.getDescription(), weather.getIsDayTime()));
             ComponentName thisWidget = new ComponentName(context, PixelLikeWidget.class);
             AppWidgetManager.getInstance(context).updateAppWidget(thisWidget, views);
+            LocationServices.FusedLocationApi.removeLocationUpdates(googleApiClient, locationListener);
             googleApiClient.disconnect();
             Log.i(TAG,"Widget Updated");
         }
@@ -342,7 +333,61 @@ public class UpdateWidgetJobService extends JobService {
             AppWidgetManager.getInstance(context).updateAppWidget(thisWidget, views);
             Log.i(TAG,"Job Service Ends.");
         }
+
+        private void prepareGoogleApiClient() {
+            googleApiClient = new GoogleApiClient.Builder(contextWeakReference.get(), connectionCallbacks(), connectionFailedListener())
+                    .addApi(LocationServices.API)
+                    .build();
+            googleApiClient.connect();
+
+            try {
+                locationManager = (LocationManager) contextWeakReference.get().getSystemService(Context.LOCATION_SERVICE);
+
+                if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+                    locationRequest = LocationRequest.create()
+                            .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
+                            .setInterval(UPDATE_DURATION)
+                            .setFastestInterval(FASTEST_UPDATE)
+                            .setSmallestDisplacement(DISPLACEMENT);
+                } else {
+                    locationRequest = LocationRequest.create()
+                            .setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY)
+                            .setInterval(UPDATE_DURATION)
+                            .setFastestInterval(FASTEST_UPDATE)
+                            .setSmallestDisplacement(DISPLACEMENT);
+                }
+            } catch (Exception e) {
+                Log.i(TAG, "Airplane Mode");
+                /* Phone is in airplane mode when location manager returns null */
+            }
+
+            locationListener = new LocationListener() {
+                @Override
+                public void onLocationChanged(Location newLocation) {
+                    try {
+                        location = newLocation;
+                        Log.i("onLocationChanged", String.valueOf(location.getLatitude())+","+location.getLongitude());
+                    } catch (Exception e) {
+                        //
+                    }
+                }
+            };
+        }
+
+        /* This will let us know if connection fails and we can request to connect again */
+        private GoogleApiClient.OnConnectionFailedListener connectionFailedListener() {
+            return new GoogleApiClient.OnConnectionFailedListener() {
+                @Override
+                public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+                    Log.i(TAG, "Connection Failed");
+                    if (googleApiClient.isConnected() || googleApiClient.isConnecting())
+                        googleApiClient.disconnect();
+                    googleApiClient.connect();
+                }
+            };
+        }
     }
+
 
 }
 
