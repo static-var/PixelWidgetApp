@@ -1,34 +1,65 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/wrap"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:layout_marginEnd="4dp"
-    android:layout_marginStart="4dp"
-    android:layout_marginTop="8dp"
     tools:context=".UI.SettingsActivity">
 
-    <Switch
-        android:id="@+id/cal_app"
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginEnd="4dp"
+        android:layout_marginStart="4dp"
+        android:layout_marginTop="8dp"
+        android:orientation="vertical">
+
+        <Switch
+            android:id="@+id/cal_app"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="4dp"
+            android:text="@string/cal_app" />
+
+
+        <Switch
+            android:id="@+id/use_fahrenheit"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="4dp"
+            android:text="@string/use_fahrenheit" />
+
+        <Switch
+            android:id="@+id/show_city_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="4dp"
+            android:text="@string/show_city_name" />
+
+        <Switch
+            android:id="@+id/remainder_priority"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="4dp"
+            android:text="@string/reminder_priority" />
+
+        <TextView
+            android:id="@+id/calendar_online"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="4dp"
+            android:text="@string/use_cal_online"
+            android:textColor="@android:color/black" />
+
+    </LinearLayout>
+
+    <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/cal_app"
-        android:layout_margin="4dp" />
-
-    <Switch
-        android:id="@+id/cal_google"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/cal_google"
-        android:layout_margin="4dp" />
-
-    <Switch
-        android:id="@+id/use_fahrenheit"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/use_fahrenheit"
-        android:layout_margin="4dp" />
-
-</LinearLayout>
+        android:layout_alignParentBottom="true"
+        android:layout_margin="16dp"
+        android:text="@string/note_string"
+        android:textColor="?colorAccent"
+        android:textSize="14sp" />
+</RelativeLayout>

@@ -1,22 +1,62 @@
 package com.dev.shreyansh.pixelwidget.UI;
 
-import android.R.*;
+import android.Manifest;
+import android.accounts.Account;
+import android.accounts.AccountManager;
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.ContentResolver;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.Loader;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.net.Uri;
+import android.provider.CalendarContract;
+import android.provider.Settings;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.LoaderManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
 import android.widget.CompoundButton;
 import android.widget.Switch;
+import android.widget.TextView;
 
 import com.dev.shreyansh.pixelwidget.R;
+import com.dev.shreyansh.pixelwidget.Util.CalendarContractHelper;
+import com.dev.shreyansh.pixelwidget.Util.StaticStrings;
+import com.dev.shreyansh.pixelwidget.Util.Util;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.common.api.Scope;
+import com.google.api.services.calendar.CalendarScopes;
 
 public class SettingsActivity extends AppCompatActivity {
+
+    private static final String TAG = SettingsActivity.class.getSimpleName();
+    private static final int CAL_REQ = 1001;
+    private static final int CAL_WRITE_REQ = 1002;
+
     private SharedPreferences sp;
     private SharedPreferences.Editor spe;
 
     private Switch calendarApp;
-    private Switch calendarOnline;
     private Switch unit;
+    private Switch showCityName;
+    private Switch reminderImportance;
+
+    private TextView integrateGCO;
+
+    private Activity activity;
+    private Context context;
+
+    private Intent intent;
 
 
     @Override
@@ -24,22 +64,197 @@ public class SettingsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
 
+        /* They will be required through out this activity */
+        context = this;
+        activity = this;
 
-        sp = getSharedPreferences("PIXEL", MODE_PRIVATE);
+        /* To save User settings */
+        sp = getSharedPreferences(StaticStrings.SP, MODE_PRIVATE);
 
+        /* To maintain uniformity through out the app */
         this.getSupportActionBar().setElevation(0);
         this.getSupportActionBar().setTitle("Settings");
+        this.getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-
+        /* Bind UI elements */
         bindUI();
 
+        GoogleSignInAccount account = null;
+        if (GoogleSignIn.hasPermissions(
+                GoogleSignIn.getLastSignedInAccount(this), new Scope(CalendarScopes.CALENDAR)))
+            account = GoogleSignIn.getLastSignedInAccount(this);
+        if (account != null) {
+            integrateGCO.setText(getText(R.string.disconnect_google_cal));
+        }
+
+
+        /* Put listeners on all elements */
         checkedChangedListener();
+
+        /* Check if Google Calendar app is installed or not */
+        if(!checkIfCalendarInstalled(context)) {
+            calendarApp.setEnabled(false);
+            spe = sp.edit();
+            spe.putBoolean(StaticStrings.CAL_APP,false);
+            spe.apply();
+        } else {
+            calendarApp.setEnabled(true);
+        }
+
+
+        if(sp.getBoolean(StaticStrings.CAL_APP,false))
+            calendarApp.setChecked(true);
+
+        if(sp.getBoolean(StaticStrings.UNIT_F,false))
+            unit.setChecked(true);
+
+        if(sp.getBoolean(StaticStrings.SHOW_CITY, false))
+            showCityName.setChecked(true);
+
+        if(sp.getBoolean(StaticStrings.REMINDER_IMP, false))
+            reminderImportance.setChecked(true);
+
+        intent = new Intent(this, GoogleAccountsActivity.class);
     }
 
     private void bindUI() {
-
+        calendarApp = findViewById(R.id.cal_app);
+        unit = findViewById(R.id.use_fahrenheit);
+        showCityName = findViewById(R.id.show_city_name);
+        integrateGCO = findViewById(R.id.calendar_online);
+        reminderImportance = findViewById(R.id.remainder_priority);
     }
 
     private void checkedChangedListener() {
+        if(checkIfCalendarInstalled(context))
+            calendarApp.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                    if(isChecked) {
+                        if (ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.WRITE_CALENDAR) != PackageManager.PERMISSION_GRANTED) {
+                            ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.WRITE_CALENDAR}, CAL_WRITE_REQ);
+                        }
+                        if (ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.READ_CALENDAR) != PackageManager.PERMISSION_GRANTED) {
+                            ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.READ_CALENDAR}, CAL_REQ);
+                        }
+                        spe = sp.edit();
+                        spe.putBoolean(StaticStrings.CAL_APP, true);
+                        spe.apply();
+
+                        CalendarContractHelper helper = new CalendarContractHelper(context);
+                        helper.getCalendars();
+                        helper.getEvents();
+                        Util.scheduleTriggerContentUriJob(context);
+                    } else {
+                        spe = sp.edit();
+                        spe.putBoolean(StaticStrings.CAL_APP, false);
+                        spe.apply();
+                        /* Disable job for calendar stuff */
+                    }
+                }
+            });
+
+        unit.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if(isChecked) {
+                    spe = sp.edit();
+                    spe.putBoolean(StaticStrings.UNIT_F, true);
+                    spe.apply();
+                    /* Change request string and C to F */
+                } else {
+                    spe = sp.edit();
+                    spe.putBoolean(StaticStrings.UNIT_F, false);
+                    spe.apply();
+                    /* Change request string and F to C */
+                }
+            }
+        });
+
+        showCityName.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if(isChecked) {
+                    spe = sp.edit();
+                    spe.putBoolean(StaticStrings.SHOW_CITY, true);
+                    spe.apply();
+                    /* Change request string and C to F */
+                } else {
+                    spe = sp.edit();
+                    spe.putBoolean(StaticStrings.SHOW_CITY, false);
+                    spe.apply();
+                    /* Change request string and F to C */
+                }
+            }
+        });
+
+        integrateGCO.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(intent);
+                overridePendingTransition(R.anim.enter, R.anim.exit);
+            }
+        });
+
+        reminderImportance.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if(isChecked) {
+                    spe = sp.edit();
+                    spe.putBoolean(StaticStrings.REMINDER_IMP, true);
+                    spe.apply();
+                    /* Change Reminder logic */
+                } else {
+                    spe = sp.edit();
+                    spe.putBoolean(StaticStrings.REMINDER_IMP, false);
+                    spe.apply();
+                    /* Go with stock logic*/
+                }
+            }
+        });
     }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        switch (requestCode) {
+            case CAL_REQ:
+            case CAL_WRITE_REQ:
+                if (grantResults.length > 0 && grantResults[0] != PackageManager.PERMISSION_GRANTED) {
+                    /* Show alert with appropriate options */
+                    AlertDialog builder = new AlertDialog.Builder(this)
+                            .setMessage("We require Calendar permission.")
+                            .setTitle("Calendar Permission.")
+                            .setCancelable(false)
+                            .setPositiveButton("Grant Permission", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    Intent intent = new Intent();
+                                    intent.setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                                    Uri uri = Uri.fromParts("package", getPackageName(), null);
+                                    intent.setData(uri);
+                                    startActivity(intent);
+                                }
+                            })
+                            .setNegativeButton("Close App", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    finish();
+                                }
+                            })
+                            .show();
+                    builder.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(getResources().getColor(R.color.colorAccent));
+                    builder.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(getResources().getColor(R.color.colorAccent));
+                }
+        }
+    }
+
+    private boolean checkIfCalendarInstalled(Context context) {
+        try {
+            context.getPackageManager().getApplicationInfo(StaticStrings.CALENDAR_APP, 0);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
 }
