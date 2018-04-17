@@ -56,12 +56,24 @@
     <!-- Settings String -->
     <string name="settings">Settings</string>
 
-    <!-- Integrate Calendar permission string -->
+    <!-- Integrate Calendar string -->
     <string name="cal_app">Integrate with Calendar Application</string>
-    <string name="cal_google">Integrate with Google Calendar (Online)</string>
 
     <!-- Use Fahrenheit String -->
     <string name="use_fahrenheit">Use Fahrenheit as unit scale</string>
 
+    <!-- Show city name String -->
+    <string name="show_city_name">Show city name when no upcoming event or reminder.</string>
+
+    <!-- Reminders priority String -->
+    <string name="reminder_priority">Give Reminders more importance over Events</string>
+
+    <!-- Use online Calendar String -->
+    <string name="use_cal_online"><b>Click here to integrate Online Google Calendar</b> \nIn case you don\'t have Calendar Application, you can integrate Google Calendar from your gmail account and we\'ll sync your events from Online Google Calendar.
+        This can be used side by side with <i>\"Integrate with Calendar Application\"</i> feature enabled as well.</string>
+    <string name="disconnect_google_cal"><b>Click here to disconnect your Online Google Calendar.</b> Click on logout, to stop the sync of your Online Google Calendar.</string>
+
+    <!-- Note Message -->
+    <string name="note_string"><b>Note</b> : If you are using Android Version below Nougat (Android 7 | API 24) or you have connected your online google calendar, then the events and reminders may take up-to 15 minutes to sync with this app\'s widget.</string>
 
 </resources>
