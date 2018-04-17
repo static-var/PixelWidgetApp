@@ -45,18 +45,21 @@ public class GoogleCalendarAsync extends AsyncTask<Void,Void,List<Event>> {
     @Override
     public List<Event> doInBackground(Void... params) {
         try {
-            account = GoogleSignIn.getLastSignedInAccount(context).getAccount();
-            credential = GoogleAccountCredential.usingOAuth2(context,
-                            Collections.singleton(CALENDAR_SCOPE));
-            credential.setSelectedAccount(account);
+            try {
+                account = GoogleSignIn.getLastSignedInAccount(context).getAccount();
+                credential = GoogleAccountCredential.usingOAuth2(context,
+                        Collections.singleton(CALENDAR_SCOPE));
+                credential.setSelectedAccount(account);
 
-            service = new com.google.api.services.calendar.Calendar.Builder(
-                    HTTP_TRANSPORT, JSON_FACTORY, credential)
-                    .setApplicationName("Pixel Weather")
-                    .build();
+                service = new com.google.api.services.calendar.Calendar.Builder(
+                        HTTP_TRANSPORT, JSON_FACTORY, credential)
+                        .setApplicationName("Pixel Weather")
+                        .build();
 
-            Log.i(TAG, GoogleSignIn.getLastSignedInAccount(context).getDisplayName());
-
+                Log.i(TAG, GoogleSignIn.getLastSignedInAccount(context).getDisplayName());
+            } catch (NullPointerException e) {
+                Log.e(TAG, "NPE - Passed");
+            }
             return getEventsFromCal(service);
 
 
