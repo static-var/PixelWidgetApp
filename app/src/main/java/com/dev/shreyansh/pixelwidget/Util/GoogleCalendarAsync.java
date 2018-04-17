@@ -75,30 +75,33 @@ public class GoogleCalendarAsync extends AsyncTask<Void,Void,List<Event>> {
 
         try {
             /* Events from now to 24 hours from now */
-            Events events = mService.events().list("primary")
-                    .setMaxResults(10)
-                    .setTimeMin(now)
-                    .setTimeMax(max)
-                    .setOrderBy("startTime")
-                    .setSingleEvents(true)
-                    .execute();
-            for(Event e : events.getItems()){
-                Log.i(TAG, e.getSummary());
+            if(mService != null) {
+                Events events = mService.events().list("primary")
+                        .setMaxResults(10)
+                        .setTimeMin(now)
+                        .setTimeMax(max)
+                        .setOrderBy("startTime")
+                        .setSingleEvents(true)
+                        .execute();
+                for (Event e : events.getItems()) {
+                    Log.i(TAG, e.getSummary());
+                }
+
+                /*
+                 * An event which is full day event
+                 * will return null on .getDateTime()
+                 * and where as
+                 * An event which is not a full day event
+                 * will return null on .getDate()
+                 */
+
+                return events.getItems();
             }
-
-            /*
-            * An event which is full day event
-            * will return null on .getDateTime()
-            * and where as
-            * An event which is not a full day event
-            * will return null on .getDate()
-            */
-
-            return events.getItems();
         } catch (Exception e) {
             Log.i(TAG,"Error While Fetching Data", e);
             return null;
         }
+        return null;
     }
 
 
