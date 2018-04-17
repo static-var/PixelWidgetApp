@@ -152,6 +152,8 @@ public class UpdateWidgetJobService extends JobService {
                 public void onConnected(@Nullable Bundle bundle) {
                     if (ContextCompat.checkSelfPermission(contextWeakReference.get(), Manifest.permission.ACCESS_FINE_LOCATION)
                             == PackageManager.PERMISSION_GRANTED) {
+                        if(locationListener == null || googleApiClient == null || locationRequest == null)
+                            prepareGoogleApiClient();
                         LocationServices.FusedLocationApi.requestLocationUpdates(googleApiClient, locationRequest, locationListener);
                         location = LocationServices.FusedLocationApi.getLastLocation(googleApiClient);
                         if (location == null) {
