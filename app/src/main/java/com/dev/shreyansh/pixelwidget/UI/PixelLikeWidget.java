@@ -7,6 +7,7 @@ import android.appwidget.AppWidgetProvider;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
@@ -22,6 +23,7 @@ import android.widget.RemoteViews;
 import org.json.JSONObject;
 
 import com.dev.shreyansh.pixelwidget.R;
+import com.dev.shreyansh.pixelwidget.Util.StaticStrings;
 import com.dev.shreyansh.pixelwidget.WeatherAndForecast.FetchAsync;
 import com.dev.shreyansh.pixelwidget.WeatherAndForecast.Weather;
 import com.google.android.gms.common.ConnectionResult;
@@ -55,6 +57,9 @@ public class PixelLikeWidget extends AppWidgetProvider{
     private LocationManager locationManager;
     public Location location;
     private FusedLocationProviderClient fusedLocationProviderClient;
+
+    private SharedPreferences sp;
+    private SharedPreferences.Editor spe;
 
 
     void updateAppWidget(final Context context, AppWidgetManager appWidgetManager,
@@ -112,12 +117,24 @@ public class PixelLikeWidget extends AppWidgetProvider{
     @Override
     public void onEnabled(final Context context) {
         // Enter relevant functionality for when the first widget is created
-        Log.i(TAG,"onEnable");
+        Log.i(TAG,"Widget Created.");
+        /* We need to know if widget exists or not, before we start Services or Jobs */
+        sp = context.getSharedPreferences(StaticStrings.SP, Context.MODE_PRIVATE);
+        spe = sp.edit();
+        spe.putBoolean(StaticStrings.WIDGET_CREATED, true);
+        spe.apply();
+
     }
 
     @Override
     public void onDisabled(Context context) {
         // Enter relevant functionality for when the last widget is disabled
+        Log.i(TAG,"Widget Removed.");
+        /* We need to know if widget exists or not, before we start Services or Jobs */
+        sp = context.getSharedPreferences(StaticStrings.SP, Context.MODE_PRIVATE);
+        spe = sp.edit();
+        spe.putBoolean(StaticStrings.WIDGET_CREATED, false);
+        spe.apply();
     }
 
     @Override
@@ -275,7 +292,7 @@ public class PixelLikeWidget extends AppWidgetProvider{
 
             @Override
             public void onConnectionSuspended(int i) {
-                googleApiClient.connect();
+                // Do not connect again if the connection is suspended
             }
         };
     }
