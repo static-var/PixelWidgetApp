@@ -1,24 +1,45 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
+    android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:gravity="center"
     android:layout_weight="2">
 
-    <TextView
-        android:id="@+id/event_display_widget"
-        android:layout_width="match_parent"
+    <LinearLayout
+        android:layout_width="wrap_content"
         android:layout_height="0dp"
-        android:gravity="center"
-        android:fontFamily="fonts/Product Sans Regular.ttf"
-        android:textColor="@android:color/white"
-        android:maxLines="1"
-        android:textSize="36sp"
-        android:shadowDx="0"
-        android:shadowDy="0"
-        android:shadowRadius="6"
-        android:layout_weight="1.3"
-        android:shadowColor="@android:color/black" />
+        android:orientation="horizontal"
+        android:layout_gravity="center_vertical|center_horizontal|center"
+        android:gravity="center|center_horizontal|center_vertical"
+        android:layout_weight="1.3">
+
+        <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            android:id="@+id/circle"
+            android:visibility="gone"
+            android:layout_width="14dp"
+            android:layout_height="14dp"
+            android:layout_marginEnd="6dp"
+            android:elevation="2dp"
+            android:foregroundGravity="center"
+            android:translationZ="2dp"
+            android:layout_gravity="center_vertical" />
+
+        <TextView
+            android:id="@+id/event_display_widget"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:fontFamily="fonts/Product Sans Regular.ttf"
+            android:textColor="@android:color/white"
+            android:singleLine="true"
+            android:ellipsize="marquee"
+            android:textSize="28sp"
+            android:textStyle="bold"
+            android:gravity="center|end"
+            android:shadowRadius="6"
+            android:shadowColor="@android:color/black" />
+
+    </LinearLayout>
+
 
 
     <LinearLayout
@@ -33,11 +54,12 @@
             android:id="@+id/date_or_event_duration"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:gravity="center_vertical|end"
+            android:gravity="center_vertical|start"
             android:fontFamily="fonts/Product Sans Regular.ttf"
             android:textColor="@android:color/white"
-            android:maxLines="1"
-            android:textSize="24sp"
+            android:ellipsize="marquee"
+            android:singleLine="true"
+            android:textSize="20sp"
             android:shadowDx="0"
             android:shadowDy="0"
             android:shadowRadius="6"
@@ -50,7 +72,8 @@
             android:layout_height="match_parent"
             android:contentDescription="Image"
             android:adjustViewBounds="true"
-            android:layout_marginRight="8dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
             android:padding="2dp"
             android:layout_gravity="center_vertical"
             android:scaleType="fitCenter"/>
@@ -61,9 +84,10 @@
             android:layout_height="match_parent"
             android:fontFamily="fonts/Product Sans Regular.ttf"
             android:textColor="@android:color/white"
-            android:gravity="center_vertical"
-            android:maxLines="1"
-            android:textSize="24sp"
+            android:gravity="center_vertical|end"
+            android:singleLine="true"
+            android:ellipsize="marquee"
+            android:textSize="20sp"
             android:shadowDx="0"
             android:shadowDy="0"
             android:shadowRadius="6"
