@@ -9,6 +9,7 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.READ_CALENDAR" />
     <uses-permission android:name="android.permission.WRITE_CALENDAR" />
+    <uses-permission android:name="android.permission.GET_ACCOUNTS" />
 
 
     <meta-data
@@ -47,7 +48,8 @@
         <activity
             android:name=".UI.ForecastDisplay"
             android:parentActivityName=".UI.MainActivity" />
-        <activity android:name=".UI.GoogleAccountsActivity" />
+        <activity
+            android:name=".UI.GoogleAccountsActivity" />
 
         <receiver android:name=".Util.OnBootBroadcast">
             <intent-filter>
@@ -63,11 +65,23 @@
             android:exported="true"
             android:permission="android.permission.BIND_JOB_SERVICE" />
 
+        <service
+            android:name=".Util.EventTriggerJobService"
+            android:exported="true"
+            android:permission="android.permission.BIND_JOB_SERVICE" />
+
+        <service
+            android:name=".Util.EventJobService"
+            android:exported="true"
+            android:permission="android.permission.BIND_JOB_SERVICE" />
+
         <meta-data
             android:name="io.fabric.ApiKey"
             android:value="510cc8df11823140485f30d31b6c57061ce261ba" />
 
-        <activity android:name=".UI.SettingsActivity" />
+        <activity
+            android:name=".UI.SettingsActivity"
+            android:parentActivityName=".UI.MainActivity"/>
         <activity android:name=".UI.SplashActivity" android:theme="@style/SplashTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
