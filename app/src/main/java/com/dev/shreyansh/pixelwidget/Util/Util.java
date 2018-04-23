@@ -1,3 +1,20 @@
+/*
+ * Copyright (C) 2017-2018 Shreyansh Lodha <slodha96@gmail.com>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PixelWidget.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package com.dev.shreyansh.pixelwidget.Util;
 
 import android.app.job.JobInfo;
@@ -7,6 +24,7 @@ import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Build;
+import android.provider.CalendarContract;
 import android.util.Log;
 
 /**
@@ -14,9 +32,8 @@ import android.util.Log;
  */
 
 public class Util {
+    public static final int JOB_WIDGET_UPDATE = 1001;
     private static final String TAG = Util.class.getSimpleName();
-
-    private static final int JOB_WIDGET_UPDATE = 1001;
     private static final int REFRESH_INTERVAL = 5 * 1000;
 
     public static void widgetData(Context context) {
@@ -29,22 +46,26 @@ public class Util {
             builder.setMinimumLatency(REFRESH_INTERVAL);
 
             /*
-            * When UpdateWidgetJobService#onStartService will call this function
-            * Check if we have access to internet or not
-            * If we have internet, then only set OverrideDeadline
-            * As this property will run the JobService even when there's no network
-            * or when phone is in doze more
-            * This check will save some juice.
-            */
-            if(checkNetwork(context) && pingGoogle())
+             * When UpdateWidgetJobService#onStartService will call this function
+             * Check if we have access to internet or not
+             * If we have internet, then only set OverrideDeadline
+             * As this property will run the JobService even when there's no network
+             * or when phone is in doze more
+             * This check will save some juice.
+             */
+
+            if (checkNetwork(context) && pingGoogle())
                 builder.setOverrideDeadline(REFRESH_INTERVAL);
         } else {
             builder.setPeriodic(REFRESH_INTERVAL);
         }
-        builder.setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY);
-        builder.setRequiresCharging(false); // we don't care if the device is charging or not
 
-        JobScheduler jobScheduler = (JobScheduler)  context.getSystemService(Context.JOB_SCHEDULER_SERVICE);
+        /* We will check in JobService if we have internet access or not, as we have some offline work to do as well */
+        builder.setRequiredNetworkType(JobInfo.NETWORK_TYPE_NONE);
+        builder.setRequiresCharging(false);
+        builder.setRequiresDeviceIdle(false);
+        builder.setPersisted(true); /* Should start at boot */
+        JobScheduler jobScheduler = (JobScheduler) context.getSystemService(Context.JOB_SCHEDULER_SERVICE);
         jobScheduler.schedule(builder.build());
     }
 
@@ -56,9 +77,8 @@ public class Util {
 
             //should check null because in airplane mode it will be null
             return (netInfo != null && netInfo.isConnected());
-        }
-        catch (Exception e) {
-            Log.e(TAG, "Error", e);
+        } catch (NullPointerException e) {
+            Log.e(TAG, "Error");
             return false;
         }
     }
@@ -72,5 +92,6 @@ public class Util {
             return false;
         }
     }
+
 
 }
