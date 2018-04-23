@@ -9,7 +9,6 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.READ_CALENDAR" />
     <uses-permission android:name="android.permission.WRITE_CALENDAR" />
-    <uses-permission android:name="android.permission.GET_ACCOUNTS" />
 
 
     <meta-data
@@ -62,16 +61,6 @@
 
         <service
             android:name=".Util.UpdateWidgetJobService"
-            android:exported="true"
-            android:permission="android.permission.BIND_JOB_SERVICE" />
-
-        <service
-            android:name=".Util.EventTriggerJobService"
-            android:exported="true"
-            android:permission="android.permission.BIND_JOB_SERVICE" />
-
-        <service
-            android:name=".Util.EventJobService"
             android:exported="true"
             android:permission="android.permission.BIND_JOB_SERVICE" />
 
