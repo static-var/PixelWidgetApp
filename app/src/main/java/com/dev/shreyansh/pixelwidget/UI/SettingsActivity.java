@@ -1,28 +1,36 @@
+/*
+ * Copyright (C) 2017-2018 Shreyansh Lodha <slodha96@gmail.com>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PixelWidget.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package com.dev.shreyansh.pixelwidget.UI;
 
 import android.Manifest;
-import android.accounts.Account;
-import android.accounts.AccountManager;
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.Loader;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.database.Cursor;
+import android.graphics.Color;
 import android.net.Uri;
-import android.provider.CalendarContract;
-import android.provider.Settings;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.LoaderManager;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
+import android.provider.Settings;
+import android.support.v4.app.ActivityCompat;
+import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.CompoundButton;
 import android.widget.Switch;
@@ -49,7 +57,6 @@ public class SettingsActivity extends AppCompatActivity {
     private Switch calendarApp;
     private Switch unit;
     private Switch showCityName;
-    private Switch reminderImportance;
 
     private TextView integrateGCO;
 
@@ -92,27 +99,24 @@ public class SettingsActivity extends AppCompatActivity {
         checkedChangedListener();
 
         /* Check if Google Calendar app is installed or not */
-        if(!checkIfCalendarInstalled(context)) {
+        if (!checkIfCalendarInstalled(context)) {
             calendarApp.setEnabled(false);
             spe = sp.edit();
-            spe.putBoolean(StaticStrings.CAL_APP,false);
+            spe.putBoolean(StaticStrings.CAL_APP, false);
             spe.apply();
         } else {
             calendarApp.setEnabled(true);
         }
 
 
-        if(sp.getBoolean(StaticStrings.CAL_APP,false))
+        if (sp.getBoolean(StaticStrings.CAL_APP, false))
             calendarApp.setChecked(true);
 
-        if(sp.getBoolean(StaticStrings.UNIT_F,false))
+        if (sp.getBoolean(StaticStrings.UNIT_F, false))
             unit.setChecked(true);
 
-        if(sp.getBoolean(StaticStrings.SHOW_CITY, false))
+        if (sp.getBoolean(StaticStrings.SHOW_CITY, false))
             showCityName.setChecked(true);
-
-        if(sp.getBoolean(StaticStrings.REMINDER_IMP, false))
-            reminderImportance.setChecked(true);
 
         intent = new Intent(this, GoogleAccountsActivity.class);
     }
@@ -122,15 +126,14 @@ public class SettingsActivity extends AppCompatActivity {
         unit = findViewById(R.id.use_fahrenheit);
         showCityName = findViewById(R.id.show_city_name);
         integrateGCO = findViewById(R.id.calendar_online);
-        reminderImportance = findViewById(R.id.remainder_priority);
     }
 
     private void checkedChangedListener() {
-        if(checkIfCalendarInstalled(context))
+        if (checkIfCalendarInstalled(context))
             calendarApp.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                    if(isChecked) {
+                    if (isChecked) {
                         if (ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.WRITE_CALENDAR) != PackageManager.PERMISSION_GRANTED) {
                             ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.WRITE_CALENDAR}, CAL_WRITE_REQ);
                         }
@@ -141,14 +144,20 @@ public class SettingsActivity extends AppCompatActivity {
                         spe.putBoolean(StaticStrings.CAL_APP, true);
                         spe.apply();
 
+                        integrateGCO.setTextColor(Color.GRAY);
+                        integrateGCO.setEnabled(false);
+
                         CalendarContractHelper helper = new CalendarContractHelper(context);
                         helper.getCalendars();
                         helper.getEvents();
-                        Util.scheduleTriggerContentUriJob(context);
+                        Util.scheduleCalendarJob(context);
                     } else {
                         spe = sp.edit();
                         spe.putBoolean(StaticStrings.CAL_APP, false);
                         spe.apply();
+
+                        integrateGCO.setTextColor(Color.BLACK);
+                        integrateGCO.setEnabled(true);
                         /* Disable job for calendar stuff */
                     }
                 }
@@ -157,7 +166,7 @@ public class SettingsActivity extends AppCompatActivity {
         unit.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if(isChecked) {
+                if (isChecked) {
                     spe = sp.edit();
                     spe.putBoolean(StaticStrings.UNIT_F, true);
                     spe.apply();
@@ -174,7 +183,7 @@ public class SettingsActivity extends AppCompatActivity {
         showCityName.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if(isChecked) {
+                if (isChecked) {
                     spe = sp.edit();
                     spe.putBoolean(StaticStrings.SHOW_CITY, true);
                     spe.apply();
@@ -196,22 +205,6 @@ public class SettingsActivity extends AppCompatActivity {
             }
         });
 
-        reminderImportance.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if(isChecked) {
-                    spe = sp.edit();
-                    spe.putBoolean(StaticStrings.REMINDER_IMP, true);
-                    spe.apply();
-                    /* Change Reminder logic */
-                } else {
-                    spe = sp.edit();
-                    spe.putBoolean(StaticStrings.REMINDER_IMP, false);
-                    spe.apply();
-                    /* Go with stock logic*/
-                }
-            }
-        });
     }
 
     @Override

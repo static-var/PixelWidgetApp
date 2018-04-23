@@ -63,14 +63,10 @@
     <string name="use_fahrenheit">Use Fahrenheit as unit scale</string>
 
     <!-- Show city name String -->
-    <string name="show_city_name">Show city name when no upcoming event or reminder.</string>
-
-    <!-- Reminders priority String -->
-    <string name="reminder_priority">Give Reminders more importance over Events</string>
+    <string name="show_city_name">Show city name when no upcoming event.</string>
 
     <!-- Use online Calendar String -->
-    <string name="use_cal_online"><b>Click here to integrate Online Google Calendar</b> \nIn case you don\'t have Calendar Application, you can integrate Google Calendar from your gmail account and we\'ll sync your events from Online Google Calendar.
-        This can be used side by side with <i>\"Integrate with Calendar Application\"</i> feature enabled as well.</string>
+    <string name="use_cal_online"><b>Click here to integrate Online Google Calendar</b> \nIn case you don\'t have Calendar Application, you can integrate Google Calendar from your G-mail account and we\'ll sync your events from Online Google Calendar. </string>
     <string name="disconnect_google_cal"><b>Click here to disconnect your Online Google Calendar.</b> Click on logout, to stop the sync of your Online Google Calendar.</string>
 
     <!-- Note Message -->

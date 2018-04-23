@@ -37,13 +37,6 @@
             android:layout_margin="4dp"
             android:text="@string/show_city_name" />
 
-        <Switch
-            android:id="@+id/remainder_priority"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="4dp"
-            android:text="@string/reminder_priority" />
-
         <TextView
             android:id="@+id/calendar_online"
             android:layout_width="match_parent"
