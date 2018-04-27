@@ -22,10 +22,29 @@ public class StaticStrings {
     public static final String SHOW_CITY = "SHOW_CITY";
     public static final String UNIT_F = "UNIT_F";
     public static final String CAL_APP = "CAL_APP";
-    public static final String REMINDER_IMP = "REMINDER_IMP";
+    public static final String WIDGET_CREATED = "WIDGET_CREATED";
+
+    public static final String W_SET = "SET";
+    public static final String W_ALL_DAY = "ALL_DAY";
+    public static final String W_TITLE = "TITLE";
+    public static final String W_EVENT_END = "EVENT_END";
 
     public static final String CENTIGRADE = " " + (char) 0x00B0 + "C";
     public static final String FARENHEIT = " " + (char) 0x00B0 + "F";
 
     public static final String CALENDAR_APP = "com.google.android.calendar";
+
+    public static final String[] COLOR_IDS = {"",
+            "#A4BDFC",
+            "#7AE7BF",
+            "#DBADFF",
+            "#FF887C",
+            "#FBD75B",
+            "#FFB878",
+            "#46D6DB",
+            "#E1E1E1",
+            "#5484ED",
+            "#51B749",
+            "#DC2127"
+    };
 }
