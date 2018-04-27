@@ -33,13 +33,10 @@ public class EventFilter {
     };
 
     private List<Events> allEvents;
-    private boolean reminderOverEvent;
-    private List<Events> timeFiltered;
     private List<Events> allDayEvents;
 
-    public EventFilter(List<Events> allEvents, boolean reminderOverEvent) {
+    public EventFilter(List<Events> allEvents) {
         this.allEvents = allEvents;
-        this.reminderOverEvent = reminderOverEvent;
         allDayEvents = new ArrayList<Events>();
     }
 
