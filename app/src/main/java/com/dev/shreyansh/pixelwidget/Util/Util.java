@@ -69,6 +69,11 @@ public class Util {
         jobScheduler.schedule(builder.build());
     }
 
+    public static void cancelJob(Context context) {
+        JobScheduler scheduler = (JobScheduler) context.getSystemService(Context.JOB_SCHEDULER_SERVICE);
+        scheduler.cancel(JOB_WIDGET_UPDATE);
+    }
+
     public static boolean checkNetwork(Context context) {
         /* Check the network status */
         try {
