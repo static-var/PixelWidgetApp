@@ -1,3 +1,20 @@
+/*
+ * Copyright (C) 2017-2018 Shreyansh Lodha <slodha96@gmail.com>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PixelWidget.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package com.dev.shreyansh.pixelwidget.WeatherAndForecast;
 
 import android.util.Log;
@@ -25,14 +42,11 @@ import java.util.List;
 
 public class FetchAndProcessForecastWeather {
     private final static String TAG = "F&P-ForecastWeather";
-
+    private static int failedAttempts;
     private ArrayList<ForecastSingleDayWeather> forecastSingleDayWeathers = new ArrayList<>();
-
     private String query = "http://api.openweathermap.org/data/2.5/forecast/daily?lat=%s&lon=%s&units=metric&cnt=15&appid=%s";
     private double latitude;
     private double longitude;
-    private static int failedAttempts;
-
     private HttpClient client;
     private HttpGet httpGet;
     private HttpResponse httpResponse;
@@ -63,7 +77,7 @@ public class FetchAndProcessForecastWeather {
         } catch (Exception e) {
             Log.i(TAG, e.toString());
             failedAttempts++;
-            if(failedAttempts == 4)
+            if (failedAttempts == 4)
                 return null;
             return fetchData();
         }
