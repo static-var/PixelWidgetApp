@@ -1,3 +1,20 @@
+/*
+ * Copyright (C) 2017-2018 Shreyansh Lodha <slodha96@gmail.com>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with PixelWidget.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package com.dev.shreyansh.pixelwidget.UI;
 
 import android.Manifest;
@@ -20,8 +37,6 @@ import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.widget.RemoteViews;
 
-import org.json.JSONObject;
-
 import com.dev.shreyansh.pixelwidget.R;
 import com.dev.shreyansh.pixelwidget.Util.StaticStrings;
 import com.dev.shreyansh.pixelwidget.WeatherAndForecast.FetchAsync;
@@ -35,41 +50,44 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnSuccessListener;
 
+import org.json.JSONObject;
+
 import java.text.SimpleDateFormat;
 
 /**
  * Implementation of App Widget functionality.
  */
-public class PixelLikeWidget extends AppWidgetProvider{
+public class PixelLikeWidget extends AppWidgetProvider {
 
     public static final String TAG = "WidgetPixelWidget";
     private static final int UPDATE_DURATION = 10000;
     private static final int DISPLACEMENT = 10;
     private static final int FASTEST_UPDATE = 1000;
-
-
+    public Location location;
     Weather weather;
     JSONObject weatherData;
-
     private GoogleApiClient googleApiClient;
     private LocationRequest locationRequest;
     private LocationListener locationListener;
     private LocationManager locationManager;
-    public Location location;
     private FusedLocationProviderClient fusedLocationProviderClient;
 
     private SharedPreferences sp;
     private SharedPreferences.Editor spe;
 
+//    TODO : show date as soon as the widget is created.
+//    TODO : show message if we don't have location permission
+//    TODO : Create an png file for widget preview
+//    TODO : Use shared preferences temp and icon
 
     void updateAppWidget(final Context context, AppWidgetManager appWidgetManager,
-                                int appWidgetId) {
+                         int appWidgetId) {
 
         // Construct the RemoteViews object
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.pixel_like_widget);
 
         try {
-            if(location != null) {
+            if (location != null) {
                 weatherData = new FetchAsync().execute(location.getLatitude(), location.getLongitude()).get();
                 weather = new Weather(weatherData);
                 Log.i(TAG, weather.getCityName());
@@ -80,7 +98,7 @@ public class PixelLikeWidget extends AppWidgetProvider{
                     fusedLocationProviderClient.getLastLocation().addOnSuccessListener(new OnSuccessListener<Location>() {
                         @Override
                         public void onSuccess(Location location) {
-                            setLocation(location,context);
+                            setLocation(location, context);
                         }
                     });
                 }
@@ -96,7 +114,7 @@ public class PixelLikeWidget extends AppWidgetProvider{
     @Override
     public void onUpdate(final Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
         // There may be multiple widgets active, so update all of them
-        if(checkNetwork(context)) {
+        if (checkNetwork(context)) {
             if (checkPlayServices(context)) {
                 initialiseManagerListener(context);
                 buildGoogleApiClient(context);
@@ -117,7 +135,7 @@ public class PixelLikeWidget extends AppWidgetProvider{
     @Override
     public void onEnabled(final Context context) {
         // Enter relevant functionality for when the first widget is created
-        Log.i(TAG,"Widget Created.");
+        Log.i(TAG, "Widget Created.");
         /* We need to know if widget exists or not, before we start Services or Jobs */
         sp = context.getSharedPreferences(StaticStrings.SP, Context.MODE_PRIVATE);
         spe = sp.edit();
@@ -129,7 +147,7 @@ public class PixelLikeWidget extends AppWidgetProvider{
     @Override
     public void onDisabled(Context context) {
         // Enter relevant functionality for when the last widget is disabled
-        Log.i(TAG,"Widget Removed.");
+        Log.i(TAG, "Widget Removed.");
         /* We need to know if widget exists or not, before we start Services or Jobs */
         sp = context.getSharedPreferences(StaticStrings.SP, Context.MODE_PRIVATE);
         spe = sp.edit();
@@ -139,8 +157,8 @@ public class PixelLikeWidget extends AppWidgetProvider{
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        super.onReceive(context,intent);
-        if(intent.getAction()!=null) {
+        super.onReceive(context, intent);
+        if (intent.getAction() != null) {
             AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
             ComponentName thisAppWidget = new ComponentName(context.getPackageName(), PixelLikeWidget.class.getName());
             int[] appWidgetIds = appWidgetManager.getAppWidgetIds(thisAppWidget);
@@ -186,7 +204,7 @@ public class PixelLikeWidget extends AppWidgetProvider{
 
     /* Update the changed location and UI with it */
     public void setLocation(Location newLocation, Context context) {
-        if(checkNetwork(context) && location != null && newLocation != null) {
+        if (checkNetwork(context) && location != null && newLocation != null) {
             if (newLocation.getLongitude() != location.getLongitude() && newLocation.getLatitude() != location.getLatitude()) {
                 location = newLocation;
                 // Write data to UI
@@ -204,8 +222,7 @@ public class PixelLikeWidget extends AppWidgetProvider{
 
             //should check null because in airplane mode it will be null
             return (netInfo != null && netInfo.isConnected());
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             Log.e(TAG, e.toString());
             return false;
         }
@@ -213,37 +230,55 @@ public class PixelLikeWidget extends AppWidgetProvider{
 
     public int returnImageRes(String weather, boolean isStillDay) {
 
-        if(isStillDay) {
+        if (isStillDay) {
             switch (weather.toLowerCase().trim()) {
                 case "clear sky":
-                case "sky is clear": return R.drawable.danieledesantis_weather_icons_sunny;
-                case "few clouds":return R.drawable.danieledesantis_weather_icons_cloudy;
-                case "scattered clouds": return R.drawable.danieledesantis_weather_icons_cloudy_two;
-                case "broken clouds" : return R.drawable.danieledesantis_weather_icons_cloudy_three;
+                case "sky is clear":
+                    return R.drawable.danieledesantis_weather_icons_sunny;
+                case "few clouds":
+                    return R.drawable.danieledesantis_weather_icons_cloudy;
+                case "scattered clouds":
+                    return R.drawable.danieledesantis_weather_icons_cloudy_two;
+                case "broken clouds":
+                    return R.drawable.danieledesantis_weather_icons_cloudy_three;
                 case "shower rain":
-                case "moderate rain": return R.drawable.danieledesantis_weather_icons_rainy_two;
+                case "moderate rain":
+                    return R.drawable.danieledesantis_weather_icons_rainy_two;
                 case "rain":
-                case "light rain": return R.drawable.danieledesantis_weather_icons_rainy;
+                case "light rain":
+                    return R.drawable.danieledesantis_weather_icons_rainy;
                 case "thunderstorm":
-                case "heavy intensity rain":return R.drawable.danieledesantis_weather_icons_stormy;
-                case "snow": return R.drawable.danieledesantis_weather_icons_snowy;
-                default: return R.drawable.danieledesantis_weather_icons_cloudy;
+                case "heavy intensity rain":
+                    return R.drawable.danieledesantis_weather_icons_stormy;
+                case "snow":
+                    return R.drawable.danieledesantis_weather_icons_snowy;
+                default:
+                    return R.drawable.danieledesantis_weather_icons_cloudy;
             }
         } else {
             switch (weather.toLowerCase().trim()) {
                 case "clear sky":
-                case "sky is clear": return R.drawable.danieledesantis_weather_icons_night_clear;
-                case "few clouds":return R.drawable.danieledesantis_weather_icons_night_cloudy;
-                case "scattered clouds": return R.drawable.danieledesantis_weather_icons_night_cloudy_two;
-                case "broken clouds" : return R.drawable.danieledesantis_weather_icons_night_cloudy_three;
+                case "sky is clear":
+                    return R.drawable.danieledesantis_weather_icons_night_clear;
+                case "few clouds":
+                    return R.drawable.danieledesantis_weather_icons_night_cloudy;
+                case "scattered clouds":
+                    return R.drawable.danieledesantis_weather_icons_night_cloudy_two;
+                case "broken clouds":
+                    return R.drawable.danieledesantis_weather_icons_night_cloudy_three;
                 case "shower rain":
-                case "moderate rain": return R.drawable.danieledesantis_weather_icons_night_rainy_two;
+                case "moderate rain":
+                    return R.drawable.danieledesantis_weather_icons_night_rainy_two;
                 case "rain":
-                case "light rain": return R.drawable.danieledesantis_weather_icons_night_rainy;
+                case "light rain":
+                    return R.drawable.danieledesantis_weather_icons_night_rainy;
                 case "thunderstorm":
-                case "heavy intensity rain": return R.drawable.danieledesantis_weather_icons_night_stormy;
-                case "snow": return R.drawable.danieledesantis_weather_icons_night_snowy;
-                default: return R.drawable.danieledesantis_weather_icons_night_cloudy;
+                case "heavy intensity rain":
+                    return R.drawable.danieledesantis_weather_icons_night_stormy;
+                case "snow":
+                    return R.drawable.danieledesantis_weather_icons_night_snowy;
+                default:
+                    return R.drawable.danieledesantis_weather_icons_night_cloudy;
             }
         }
     }
@@ -252,7 +287,7 @@ public class PixelLikeWidget extends AppWidgetProvider{
     @SuppressWarnings("deprecation")
     private boolean checkPlayServices(Context context) {
         int resultCode = GooglePlayServicesUtil.isGooglePlayServicesAvailable(context);
-        if(resultCode != ConnectionResult.SUCCESS){
+        if (resultCode != ConnectionResult.SUCCESS) {
             if (GooglePlayServicesUtil.isUserRecoverableError(resultCode)) {
                 // No play services.
             } else {
@@ -272,14 +307,14 @@ public class PixelLikeWidget extends AppWidgetProvider{
 
     /* ConnectionCallback function */
     @SuppressWarnings("deprecation")
-    private GoogleApiClient.ConnectionCallbacks ret(final Context context){
+    private GoogleApiClient.ConnectionCallbacks ret(final Context context) {
         return new GoogleApiClient.ConnectionCallbacks() {
             @Override
             public void onConnected(@Nullable Bundle bundle) {
-                if(ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
+                if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
                         == PackageManager.PERMISSION_GRANTED && locationManager != null) {
-                    locationManager =  (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
-                    if(!googleApiClient.isConnected()){
+                    locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+                    if (!googleApiClient.isConnected()) {
                         googleApiClient.connect();
                         return;
                     }
@@ -302,13 +337,13 @@ public class PixelLikeWidget extends AppWidgetProvider{
         return new GoogleApiClient.OnConnectionFailedListener() {
             @Override
             public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-                Log.i(TAG,"Not able to get Location through Fuse API");
+                Log.i(TAG, "Not able to get Location through Fuse API");
             }
         };
     }
 
     public void setData(Context context, Location location) {
-        if(location != null) {
+        if (location != null) {
             try {
                 Log.i(TAG, "Setting Data on widget");
                 weatherData = new FetchAsync().execute(location.getLatitude(), location.getLongitude()).get();
