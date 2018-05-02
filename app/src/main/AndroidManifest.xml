@@ -10,7 +10,6 @@
     <uses-permission android:name="android.permission.READ_CALENDAR" />
     <uses-permission android:name="android.permission.WRITE_CALENDAR" />
 
-
     <meta-data
         android:name="io.fabric.ApiKey"
         android:value="510cc8df11823140485f30d31b6c57061ce261ba" />
@@ -32,7 +31,7 @@
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
 
-        <activity android:name=".UI.MainActivity"/>
+        <activity android:name=".UI.MainActivity" />
 
         <receiver android:name=".UI.PixelLikeWidget">
             <intent-filter>
@@ -47,8 +46,7 @@
         <activity
             android:name=".UI.ForecastDisplay"
             android:parentActivityName=".UI.MainActivity" />
-        <activity
-            android:name=".UI.GoogleAccountsActivity" />
+        <activity android:name=".UI.GoogleAccountsActivity" />
 
         <receiver android:name=".Util.OnBootBroadcast">
             <intent-filter>
@@ -70,14 +68,25 @@
 
         <activity
             android:name=".UI.SettingsActivity"
-            android:parentActivityName=".UI.MainActivity"/>
-        <activity android:name=".UI.SplashActivity" android:theme="@style/SplashTheme">
+            android:parentActivityName=".UI.MainActivity" />
+        <activity
+            android:name=".UI.SplashActivity"
+            android:theme="@style/SplashTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <receiver
+            android:name=".Util.EventInfoReceiver"
+            android:enabled="true"
+            android:exported="true" />
+        <receiver
+            android:name=".Util.EventRemoveReceiver"
+            android:enabled="true"
+            android:exported="true"></receiver>
     </application>
 
 </manifest>
