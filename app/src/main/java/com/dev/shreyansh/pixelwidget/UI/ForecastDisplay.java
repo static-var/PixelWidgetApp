@@ -1,18 +1,15 @@
 package com.dev.shreyansh.pixelwidget.UI;
 
-import android.media.Image;
-import android.support.v7.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Html;
 import android.util.Log;
 import android.view.MenuItem;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.dev.shreyansh.pixelwidget.R;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.text.WordUtils;
 
 public class ForecastDisplay extends AppCompatActivity {
